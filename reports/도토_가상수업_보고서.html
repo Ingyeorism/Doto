@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>도토 · 1차 UI와 가상 수업 보고서</title>
+<style>
+:root{--ink:#353a30;--muted:#777264;--paper:#fffdf8;--cream:#f2ede2;--green:#4e6541;--line:#dfdacd;--accent:#a75d38}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:86px}body{margin:0;background:var(--cream);color:var(--ink);font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;font-size:15px;line-height:1.85;word-break:keep-all;overflow-wrap:anywhere}a{color:var(--green);text-decoration-thickness:1px;text-underline-offset:3px}a:hover{color:var(--accent)}
+.masthead{max-width:1220px;margin:auto;padding:58px 42px 34px}.eyebrow,.section-label{font-size:12px;letter-spacing:.13em;color:var(--green);font-weight:800}.masthead h1{font-size:clamp(30px,4vw,48px);line-height:1.35;letter-spacing:-.055em;margin:16px 0}.lede{max-width:820px;font-size:18px;margin:0;color:#676558}.meta{font-size:13px;color:var(--muted);margin:20px 0 0}.scope{padding:16px 20px;border-left:3px solid #b78653;background:#ebe2d1;max-width:920px;font-size:14px;margin:26px 0 0}.stats{display:grid;grid-template-columns:repeat(3,1fr);max-width:720px;gap:12px;margin-top:24px}.stat{border:1px solid var(--line);border-radius:12px;padding:14px 18px;background:#f8f5ec}.stat strong{display:block;font-size:26px;line-height:1.4;color:var(--green)}.stat span{font-size:12px;color:var(--muted)}
+nav{position:sticky;top:0;background:#f2ede2f5;border-top:1px solid var(--line);border-bottom:1px solid var(--line);backdrop-filter:blur(12px);z-index:2}.nav-inner{max-width:1220px;margin:auto;display:flex;gap:8px;padding:10px 42px;align-items:center;flex-wrap:wrap}nav a,nav button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:7px 15px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;border:0;background:transparent;font-family:inherit;color:var(--green)}nav a:hover,nav button:hover{background:#e4e8dc}nav button{margin-left:auto;background:var(--green);color:white;cursor:pointer}nav button:hover{background:#384d2d;color:white}
+main{max-width:1220px;margin:0 auto;padding:32px 42px 56px}article{background:var(--paper);padding:42px;margin-bottom:28px;border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 28px #55472205}article h1{font-size:27px;letter-spacing:-.045em;line-height:1.5;margin:10px 0 16px}article h2{font-size:21px;letter-spacing:-.025em;margin:36px 0 16px;padding-top:12px;border-top:1px solid var(--line)}article h3{font-size:17px;margin:30px 0 10px;color:var(--green)}p{margin:12px 0}ul,ol{padding-left:23px}li{padding-left:4px;margin:6px 0}strong{font-weight:750}code{font-family:Consolas,monospace;background:#f0ece2;font-size:.9em;border-radius:4px;padding:2px 5px}table{width:100%;border-collapse:separate;border-spacing:0;margin:20px 0 26px;font-size:13px;line-height:1.8;border:1px solid var(--line);border-radius:9px;overflow:hidden}th{text-align:left;background:#e9eddf;color:#415336;font-weight:750}th,td{padding:12px 14px;vertical-align:top;border-bottom:1px solid var(--line)}tr:last-child td{border-bottom:0}tbody tr:nth-child(even){background:#faf7ef}th:first-child{width:20%}blockquote{border-left:3px solid #c5a477;padding:2px 20px;background:#f8f1e4;margin:20px 0}footer{max-width:1220px;margin:auto;padding:0 42px 36px;font-size:13px;color:var(--muted)}:focus-visible{outline:3px solid #b87f48;outline-offset:3px}
+@media(max-width:760px){body{font-size:14px}.masthead{padding:32px 18px 26px}.lede{font-size:16px}.nav-inner{padding:8px 12px;gap:0}nav a,nav button{padding:7px 10px;font-size:12px}.stats{gap:6px}.stat{padding:12px}.stat strong{font-size:24px}main{padding:20px 10px}article{padding:24px 16px;border-radius:12px}article h1{font-size:23px}article h2{font-size:19px}table{display:block;overflow-x:auto}th,td{min-width:110px;padding:10px}td:last-child{min-width:180px}footer{padding:0 20px 24px}}
+@media print{@page{size:A4;margin:15mm}html{scroll-padding-top:0}body{background:white;color:#222;font-size:10pt;line-height:1.6}.masthead{padding:0 0 18px}.masthead h1{font-size:30pt}.lede{font-size:12pt}.scope{font-size:10pt}.stats{max-width:100%}nav{display:none}main{padding:0;max-width:none}article{border:0;border-radius:0;box-shadow:none;padding:0;margin:0;break-before:page}article h1{font-size:20pt}article h2{font-size:14pt}article h3{font-size:12pt}h1,h2,h3{break-after:avoid}table{font-size:8.5pt;display:table;overflow:visible;border-radius:0}th,td{padding:7px;min-width:0}tr{break-inside:avoid}thead{display:table-header-group}a{color:inherit}footer{padding:20px 0 0}.stat{background:white}.section-label{margin-top:0}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="masthead">
+<div class="eyebrow">DOTO · CLASSROOM NOTES / 01</div>
+<h1>작은 생각을 쓰고,<br>함께 읽는 수업</h1>
+<p class="lede">도토 1차 UI 수정 결과와 서평·국가유산 조사 수업의 가상 사용성 검토를 한곳에 담았습니다.</p>
+<p class="meta">2026.09.05 · 초등 5~6학년 기준 · 교사 PC / 학생 태블릿 화면 키보드 · 모두 프로그램 사용 초보</p>
+<div class="scope"><strong>가상 수업 보고서입니다.</strong> 화면은 직접 조작했으며 학생 글과 예상 발언은 AI가 구성했습니다. 실제 아동 인터뷰·태블릿 동시 접속·Android 키보드 검증 결과가 아닙니다.</div>
+<div class="stats"><div class="stat"><strong>2개 수업</strong><span>각 40분 × 2차시 지도약안</span></div><div class="stat"><strong>6명</strong><span>가상 학생의 순차 역할 시뮬레이션</span></div><div class="stat"><strong>12개 원고</strong><span>게시 8 · 미게시 4 / 의도한 시나리오</span></div></div>
+</header>
+<nav aria-label="보고서 목차"><div class="nav-inner"><a href="#report">검토 보고서</a><a href="#lessons">지도약안</a><a href="#manuscripts">학생 원고</a><button type="button" onclick="window.print()">인쇄 / PDF 저장</button></div></nav>
+<main><article id="report"><p class="section-label">01 · 검토 보고서</p><h1>도토 1차 UI·가상 수업 검토 보고서</h1>
+<p>2026-09-05 · 작성: AI 시뮬레이션 · 대상: 도토 사용이 서툰 초등학생과 교사</p>
+<h2>판단 요약</h2>
+<p><strong>주제를 고르고 글을 쓰고, 선생님의 말을 읽어 고친 뒤 함께 읽는 기본 흐름은 UI 시안에서 이어졌다.</strong> 이번 요청의 그룹 삭제·휴지통·제목 편집·상단 정리도 반영했다. 다음 개선은 새 기능을 많이 늘리기보다 <strong>저장·게시 상태를 분명히 보여 주기, 태블릿 키보드가 열린 상태에서 쓰기 편하게 만들기, 교사가 도움이 필요한 학생을 찾기 쉽게 만들기</strong>에 집중하는 편이 좋다.</p>
+<p>현재 시안은 실제 수업 운영을 검증한 제품이 아니다. 교사 PC와 학생 태블릿의 실제 연결, 참가자 인증, Android 한글 조합 입력과 화면 키보드는 아직 확인하지 않았다.</p>
+<h2>1. 검토 범위와 방법</h2>
+<table>
+<thead>
+<tr>
+<th>구분</th>
+<th>이번에 한 일</th>
+<th>해석 범위</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>코드 확인</td>
+<td>TypeScript 포함 프로덕션 빌드, 휴지통 데이터 검사 4개</td>
+<td>해당 코드 경로의 기본 오류·데이터 보존 확인</td>
+</tr>
+<tr>
+<td>브라우저 조작</td>
+<td>제목 변경, 삭제 취소·삭제·새로고침·복원, 그룹·글 드래그, 작성·게시·피드백·수정·댓글</td>
+<td>Windows의 Chromium 기반 인앱 브라우저에서 확인한 UI 동작</td>
+</tr>
+<tr>
+<td>작은 화면</td>
+<td>800×520 CSS 픽셀의 편집 영역으로 변경하여 확인</td>
+<td>화면 키보드가 공간을 차지한 상황의 배치 모사. 실제 Android 키보드가 아님</td>
+</tr>
+<tr>
+<td>가상 수업</td>
+<td>가상 교사 1명과 학생 6명의 역할을 번갈아 조작, 두 수업에서 원고 12개 생성</td>
+<td>순차 역할 시뮬레이션. 6개 기기의 동시 접속·실제 아동 관찰이 아님</td>
+</tr>
+<tr>
+<td>가상 피드백</td>
+<td>각 인물의 예상 발언을 작성하고 실제 화면·기능과 대조</td>
+<td>AI가 구성한 사용성 가설. 인터뷰·설문·현장 의견 수집 결과가 아님</td>
+</tr>
+</tbody></table>
+<p>학생 글은 자동화 도구로 입력했다. 이 입력 시간을 학생의 타자 속도나 수업 소요 시간으로 해석하지 않는다. 게시 8개·초안 4개는 상황을 다양하게 만들기 위해 의도한 조건이며 성공률 통계가 아니다.</p>
+<h2>2. 이번 UI 수정 결과</h2>
+<table>
+<thead>
+<tr>
+<th>요청</th>
+<th>반영 결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>글이 있는 그룹도 삭제</td>
+<td>‘정말 삭제하시겠습니까?’ 창에서 원고 수와 게시글 수를 보여 주고 확인 후 삭제</td>
+</tr>
+<tr>
+<td>삭제 글의 임시 보관</td>
+<td>그룹·미게시 원고·게시본·피드백·댓글을 30일간 휴지통에 보관. 그룹 전체 또는 글 하나씩 복원</td>
+</tr>
+<tr>
+<td>새로고침 후 복원</td>
+<td>활성 게시판과 휴지통을 이 브라우저에 함께 저장. 삭제한 그룹이 새로고침 때문에 다시 나타나지 않음</td>
+</tr>
+<tr>
+<td>위쪽 + 정렬</td>
+<td>기본 버튼 여백을 제거하고 44×44 클릭 영역 중앙에 배치. 측정한 중심 오차는 가로·세로 모두 0px</td>
+</tr>
+<tr>
+<td>좌우 화살표 제거</td>
+<td>그룹 이동 화살표 제거. 손잡이를 잡아 드래그하는 방식 유지</td>
+</tr>
+<tr>
+<td>게시판 상단 간소화</td>
+<td>기존 세 줄 소개와 손잡이 안내 문구 제거. 교사가 수정·저장·취소할 수 있는 게시판 제목으로 대체</td>
+</tr>
+</tbody></table>
+<p>삭제 확인의 ‘원고 4개 / 게시한 글 1개 포함’은 총 5개라는 뜻이 아니다. 게시본은 그 원고 중 게시한 글의 공개 복사본이다. 마지막 그룹도 삭제할 수 있고, 학생에게는 교사가 그룹을 준비 중이라는 빈 화면을 보여 준다. 복원하면 그룹도 다시 만든다.</p>
+<p>휴지통은 해당 브라우저 저장소에 보관한다. 브라우저 데이터를 지우면 복구할 수 없으며, 현재는 같은 게시판을 여러 탭에서 동시에 편집하는 동기화와 다른 기기로 옮기는 보관함을 구현하지 않았다. 30일이 지난 항목은 다음 불러오기 또는 주기적 정리 때 제거한다.</p>
+<h2>3. 간단한 테스트 결과</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>결과</th>
+<th>확인 내용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>빌드·타입 검사</td>
+<td>통과</td>
+<td><code>npm run build</code>. 번들 크기 500kB 초과 안내는 남음. 빌드 오류는 아님</td>
+</tr>
+<tr>
+<td>휴지통 데이터 검사</td>
+<td>4개 통과</td>
+<td>삭제·직렬화 후 복원, 글 하나/나머지 복원과 중복 방지, 마지막 빈 그룹 복원, 30일 경계</td>
+</tr>
+<tr>
+<td>제목 변경</td>
+<td>통과</td>
+<td>제목 저장 후 새로고침에도 유지</td>
+</tr>
+<tr>
+<td>그룹 삭제 확인</td>
+<td>통과</td>
+<td>취소 시 그룹 유지, 확인 후 원고 4개·게시본 1개가 활성 화면에서 빠짐</td>
+</tr>
+<tr>
+<td>휴지통 새로고침·복원</td>
+<td>통과</td>
+<td>삭제 후 새로고침해도 원고 4개·피드백 2개가 휴지통에 남음. 전체 복원 후 그룹 복귀</td>
+</tr>
+<tr>
+<td>그룹·글 드래그</td>
+<td>수정 후 통과</td>
+<td>그룹 순서 변경과 게시글의 다른 그룹 이동을 실제 포인터 입력으로 확인</td>
+</tr>
+<tr>
+<td>+ 중앙 정렬</td>
+<td>통과</td>
+<td>44×44 영역, SVG 중심 오차 0px</td>
+</tr>
+<tr>
+<td>구절 선택·피드백·호버</td>
+<td>통과</td>
+<td>실제 선택한 인용문으로 피드백 작성, 학생 화면에서 호버 팝업으로 메시지 확인</td>
+</tr>
+<tr>
+<td>전체 문장 교체</td>
+<td>수정 후 통과</td>
+<td>교체 후 표시 0개·삭제 상태 표시, Undo 후 원래 표시 복원, Redo 후 삭제 상태</td>
+</tr>
+<tr>
+<td>경계에서 이어쓰기</td>
+<td>통과</td>
+<td>표시 뒤에 문장을 덧붙여도 기존 표시 문구만 강조됨</td>
+</tr>
+<tr>
+<td>게시·댓글·개인 피드백</td>
+<td>통과</td>
+<td>수정본 재게시와 댓글 작성. 다른 학생의 큰 글 보기에는 개인 피드백이 나타나지 않음. 통신 권한 검증은 아님</td>
+</tr>
+<tr>
+<td>작은 화면 배치</td>
+<td>일부 개선 필요</td>
+<td>800×520에서 가로 넘침 0px, 도구막대 높이 65px. 본문 편집 시 게시 버튼이 화면 위로 벗어남</td>
+</tr>
+<tr>
+<td>Android 키보드·길게 누르기</td>
+<td>미검증</td>
+<td>실제 기기 없음. 인앱 브라우저가 모의 터치 입력 명령도 지원하지 않아 통과 판정하지 않음</td>
+</tr>
+</tbody></table>
+<p>테스트 과정에서 발견하여 고친 것은 두 가지다. 첫째, 기존 위치 매핑만으로는 구절 전체를 교체할 때 새 문장까지 강조했다. 실제로 지워진 구간을 함께 확인하도록 수정했다. 둘째, 기존 HTML 드래그가 인앱 브라우저에서 그룹을 옮기지 못했다. 포인터를 잡고 실제 놓은 위치를 판단하는 방식으로 바꾸고 그룹·게시글 이동을 다시 확인했다.</p>
+<h2>4. 가상 참여자</h2>
+<p>모든 학생과 교사는 프로그램 사용 초보다. 차이는 디지털 숙련도가 아니라 글쓰기 상황과 도움의 필요 정도로 설정했다.</p>
+<table>
+<thead>
+<tr>
+<th>역할</th>
+<th>설정</th>
+<th>살펴볼 상황</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>도토 선생님</td>
+<td>초등 담임, PC 사용, 새 프로그램에 익숙하지 않음</td>
+<td>전체 원고 보기, 구절 피드백, 그룹 정리·복원</td>
+</tr>
+<tr>
+<td>김하늘</td>
+<td>생각은 풍부하지만 평가 표현이 막연함</td>
+<td>‘좋다’에 이유 붙이기, 피드백 읽고 고치기</td>
+</tr>
+<tr>
+<td>이지우</td>
+<td>다른 친구의 반응을 궁금해함</td>
+<td>게시판 읽기와 댓글, 미게시·게시 구분</td>
+</tr>
+<tr>
+<td>박서준</td>
+<td>먼저 쓰다가 그룹·출처를 놓침</td>
+<td>다른 그룹으로 옮기기, 출처 보완</td>
+</tr>
+<tr>
+<td>최유나</td>
+<td>자기 의견을 말로 설명하는 것을 좋아함</td>
+<td>친구 의견 읽기, 구체적인 질문 댓글</td>
+</tr>
+<tr>
+<td>정도윤</td>
+<td>글을 입력하는 데 시간이 더 필요함</td>
+<td>미완성 초안 유지, 이어서 쓰기</td>
+</tr>
+<tr>
+<td>한소은</td>
+<td>첫 문장을 시작하는 데 도움이 필요함</td>
+<td>빈 원고의 부담, 짧은 문장 틀의 필요</td>
+</tr>
+</tbody></table>
+<h2>5. 수업 A — 서평 쓰기</h2>
+<p>게시판은 ‘우리 반이 권하는 책’, 그룹은 ‘추천하고 싶은 책 / 다른 생각이 든 책’으로 설정했다. 공통 텍스트는 이번 검토를 위해 쓴 창작 동화 『비를 나누는 우산』이다. 실제 출판 도서를 읽었다고 가정하지 않았다.</p>
+<table>
+<thead>
+<tr>
+<th>학생</th>
+<th>만든 원고</th>
+<th>최종 화면 상태</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>김하늘</td>
+<td>작은 우산이 준 큰 마음</td>
+<td>게시. 교사의 구절 피드백을 읽고 자기 경험을 넣어 수정·재게시</td>
+</tr>
+<tr>
+<td>이지우</td>
+<td>나도 우산을 나눠 줄래</td>
+<td>게시. 하늘의 글에 이유가 구체적이라는 댓글과 질문 작성</td>
+</tr>
+<tr>
+<td>박서준</td>
+<td>친절 뒤의 이야기도 궁금해</td>
+<td>게시. 처음 선택한 추천 그룹에서 다른 생각 그룹으로 교사가 이동</td>
+</tr>
+<tr>
+<td>최유나</td>
+<td>고맙다는 말은 바로 해도 좋아</td>
+<td>게시. 쪽지를 쓰는 행동에 대한 다른 관점 제시</td>
+</tr>
+<tr>
+<td>정도윤</td>
+<td>비 오는 날 친구</td>
+<td>두 문장의 미게시 초안</td>
+</tr>
+<tr>
+<td>한소은</td>
+<td>친구에게 권하는 책</td>
+<td>첫 문장이 진행 중인 미게시 초안</td>
+</tr>
+</tbody></table>
+<p>실제 조작한 흐름은 그룹 + → 원고 작성 → 게시/초안 유지 → 교사 전체 글에서 6개 원고 열람 → 구절 선택·피드백 → 학생이 고쳐 쓰고 재게시 → 친구 댓글이다.</p>
+<ul>
+<li>수정 전: “이 책은 정말 좋다.”</li>
+<li>교사의 가상 발문: “어떤 점이 좋았나요? 우산을 기울인 장면과 내 경험을 연결해 한 문장 더 써 볼까요?”</li>
+<li>수정 후: “나도 우산이 없던 날 친구의 도움을 받은 적이 있어서 그 장면이 더 따뜻하게 느껴졌다.”</li>
+<li>친구의 가상 댓글: “내 경험을 넣어서 왜 좋았는지 더 잘 알겠어. 어떤 친구에게 권하고 싶니?”</li>
+</ul>
+<p>이 장면은 제품이 글의 근거를 구체화하는 수업을 담을 수 있음을 보여 준다. 학생이 스스로 학습 효과를 얻었다는 실증 자료는 아니다. 또한 전체 교체 후 ‘대상 구절 삭제됨’이라는 상태만 있으면 아이가 고쳐 쓴 일을 잘못한 것으로 오해할 가능성이 있다.</p>
+<h2>6. 수업 B — 국가유산 조사하여 글 쓰기</h2>
+<p>게시판은 ‘우리 손으로 소개하는 국가유산’, 그룹은 ‘수원 화성 / 경주 첨성대’로 설정했다. 국가유산포털의 공식 소개를 바탕으로 짧은 가상 조사 글을 구성했다.</p>
+<table>
+<thead>
+<tr>
+<th>학생</th>
+<th>만든 원고</th>
+<th>최종 화면 상태</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>김하늘</td>
+<td>돌을 들어 올린 지혜</td>
+<td>수원 화성 그룹에 게시. 축성 시기·도구와 보존 의견을 구분</td>
+</tr>
+<tr>
+<td>이지우</td>
+<td>하늘을 살핀 옛사람들</td>
+<td>첨성대 그룹에 게시. 위치·건립 추정을 소개</td>
+</tr>
+<tr>
+<td>박서준</td>
+<td>수원 화성의 가치</td>
+<td>출처 없이 게시한 뒤, 교사의 피드백을 읽고 기관·자료명·날짜 추가 후 재게시</td>
+</tr>
+<tr>
+<td>최유나</td>
+<td>첨성대는 왜 소중할까</td>
+<td>게시. 서준의 글에 거중기 모습을 궁금해하는 댓글 작성</td>
+</tr>
+<tr>
+<td>정도윤</td>
+<td>정조와 수원 화성</td>
+<td>더 조사할 질문을 포함한 미게시 초안</td>
+</tr>
+<tr>
+<td>한소은</td>
+<td>경주에서 만나는 첨성대</td>
+<td>이름·위치를 적은 미게시 초안</td>
+</tr>
+</tbody></table>
+<ul>
+<li>교사의 가상 발문: “자료를 어디에서 읽었나요? 글 끝에 기관 이름, 자료 제목, 읽은 날짜를 적어 주세요. 자료 문장을 그대로 옮겼다면 내 말로 바꿔 봅시다.”</li>
+<li>보완한 내용: “출처: 국가유산청 국가유산포털, ‘수원 화성’ 소개. 읽은 날: 2026년 9월 5일.”</li>
+<li>친구의 가상 댓글: “거중기가 어떤 모습인지 궁금해. 다음에는 사진을 함께 보고 싶어.”</li>
+</ul>
+<p>현재 앱에서는 출처를 본문에 직접 적는다. 자료 링크를 나눠 주는 곳, 출처 전용 입력 칸, 그림·사진 첨부는 없다. 초보 학생에게 웹주소 복사·탭 전환·본문 붙여넣기를 모두 맡기는 것보다 교사 자료함이나 간단한 출처 틀이 먼저 필요하다는 가설을 얻었다. 사진 첨부는 도움이 되지만 첫 개선의 필수 조건으로 보지는 않는다.</p>
+<h2>7. 가상 교사·학생의 예상 피드백</h2>
+<p>아래 따옴표 안 발언은 <strong>AI가 구성한 가상 발언</strong>이다. ‘화면 관찰’은 실제 UI에서 본 것, ‘예상’은 초보 사용자의 반응에 관한 가설을 뜻한다.</p>
+<table>
+<thead>
+<tr>
+<th>가상 발언</th>
+<th>근거와 성격</th>
+<th>개선 제안</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>교사: “글을 안 만든 아이도 들어왔는지 알고 싶어요.”</td>
+<td>화면 관찰: 원고가 없는 수업은 연결 인원도 0으로 표시하는 시안임. 실제 참가자 목록 없음</td>
+<td>실제 참가자와 원고 수를 분리. ‘아직 시작 안 함’은 도움을 위한 표시로만 사용</td>
+</tr>
+<tr>
+<td>교사: “아직 못 쓴 아이부터 보여 주세요.”</td>
+<td>화면 관찰: 그룹 필터·이름순은 있지만 초안/게시/도움 요청 필터 없음</td>
+<td>초안·게시됨 필터와 학생이 누르는 도움 요청. 자동 성실도 점수는 불필요</td>
+</tr>
+<tr>
+<td>교사: “실수로 지웠어도 돌아오니 안심돼요.”</td>
+<td>화면 관찰: 확인창과 휴지통 복원 작동. 심리적 안도는 예상</td>
+<td>삭제 대상 수를 유지하고 복원 후 어떤 그룹으로 돌아갔는지 알림</td>
+</tr>
+<tr>
+<td>교사: “이 링크를 아이들이 바로 열게 하고 싶어요.”</td>
+<td>화면 관찰: 교사 자료함과 링크 배포 UI 없음</td>
+<td>교사가 제목 붙인 자료 링크 1–2개 제공. 학생이 긴 주소를 입력하지 않게 함</td>
+</tr>
+<tr>
+<td>하늘: “글은 고쳤는데 친구도 새 글을 보고 있나요?”</td>
+<td>화면 관찰: 원고 수정과 공개본 업데이트는 별도 버튼</td>
+<td>‘내 원고 저장됨 / 게시판에는 이전 글이 보여요’를 구분. ‘게시글 업데이트’는 ‘고친 글 올리기’로 검토</td>
+</tr>
+<tr>
+<td>지우: “이게 저장된 건지 잘 모르겠어요.”</td>
+<td>화면 관찰: 본문 아래에는 ‘작성 중’ 표시. 실제 로컬 보관은 구현됨</td>
+<td>마지막 저장 상태를 쉬운 말로 표시하고 공개 여부와 혼동하지 않게 함</td>
+</tr>
+<tr>
+<td>서준: “다 썼는데 주제를 잘못 눌렀어요.”</td>
+<td>실제 연출: 교사가 그룹 이동 메뉴로 옮김. 학생은 직접 이동 못 함</td>
+<td>첫 버전은 교사가 이동. 원고 상단 그룹 이름을 명확히 유지하고 이동 요청 통로 검토</td>
+</tr>
+<tr>
+<td>유나: “이유를 더 썼는데 피드백이 아직 남아 있어요.”</td>
+<td>화면 관찰: 피드백 완료·답장·해결 상태 없음</td>
+<td>‘읽었어요 / 고쳤어요’ 정도의 학생 표시와 교사 확인. 상세 변경 추적은 뒤로 미룸</td>
+</tr>
+<tr>
+<td>도윤: “키보드 쓰다가 게시 버튼을 어디서 찾죠?”</td>
+<td>화면 관찰: 800×520 편집 영역에서 게시 버튼이 위로 벗어남. Android 자체 키보드는 미검증</td>
+<td>글쓰기 핵심 동작을 키보드 위에서 찾기 쉽게 배치. 실제 키보드로 먼저 확인</td>
+</tr>
+<tr>
+<td>소은: “첫 줄에 무슨 말을 쓰면 돼요?”</td>
+<td>화면 관찰: 제목·본문은 빈 입력 영역, 자동 문장 틀 없음. 막막함은 예상</td>
+<td>교사가 선택하는 간단한 질문 3개 또는 시작 문장. 완성 답안 자동 생성은 불필요</td>
+</tr>
+<tr>
+<td>조사 수업 학생: “출처에는 주소를 다 써야 해요?”</td>
+<td>출처 누락을 의도적으로 연출하고 본문 끝에 보완함</td>
+<td>기관/자료 제목/날짜의 짧은 입력 틀, 링크는 선택 입력</td>
+</tr>
+<tr>
+<td>조사 수업 학생: “글만 보니까 거중기 모양을 모르겠어요.”</td>
+<td>가상 댓글에 넣은 요구. 현재 이미지 첨부 없음</td>
+<td>우선 교사 화면·자료 카드로 그림 제공. 학생 이미지 업로드는 후속 검토</td>
+</tr>
+</tbody></table>
+<h2>8. 다음 개발의 우선순위</h2>
+<table>
+<thead>
+<tr>
+<th>순서</th>
+<th>제안</th>
+<th>완료를 판단할 짧은 기준</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>실제 수업 전 필수</td>
+<td>교사·학생 직접 연결, 권한 확인, 재접속·원고 보관</td>
+<td>PC와 실제 태블릿 두 대에서 서로 다른 원고를 쓰고 재접속해 자기 글만 이어 씀</td>
+</tr>
+<tr>
+<td>실제 수업 전 필수</td>
+<td>Android 화면 키보드·한글 조합·터치 확인</td>
+<td>제목→본문→서식→피드백→수정→게시를 실제 키보드로 수행. 입력 손실·커서 점프가 없어야 함</td>
+</tr>
+<tr>
+<td>UI 다음 차례 1</td>
+<td>저장·공개본 상태와 쉬운 게시 버튼 이름</td>
+<td>아이가 ‘나에게 저장됐는지/친구에게 보이는지’를 설명할 수 있음</td>
+</tr>
+<tr>
+<td>UI 다음 차례 2</td>
+<td>키보드 사용 중 핵심 동작 접근</td>
+<td>키보드가 열린 상태에서 현재 문장과 글 올리기 동작을 찾기 쉬움</td>
+</tr>
+<tr>
+<td>UI 다음 차례 3</td>
+<td>도움 요청·초안/게시 필터·피드백 확인</td>
+<td>교사가 손든 학생·초안·피드백 반영 여부를 몇 번의 클릭으로 구분</td>
+</tr>
+<tr>
+<td>수업 지원 1</td>
+<td>선택형 글쓰기 틀과 출처 칸</td>
+<td>서평/조사 글의 시작을 돕되 학생 생각을 대신 써 주지 않음</td>
+</tr>
+<tr>
+<td>수업 지원 2</td>
+<td>교사 자료 링크·그림 카드</td>
+<td>학생이 긴 주소를 입력하거나 여러 검색 탭 사이를 헤매지 않음</td>
+</tr>
+<tr>
+<td>나중에 검토</td>
+<td>학생 이미지 첨부·수업 템플릿 복제</td>
+<td>첫 수업의 입력·연결 문제를 해결한 뒤 현장 필요로 결정</td>
+</tr>
+</tbody></table>
+<p>가상 피드백에서 나온 제안을 이번에 모두 구현하지는 않았다. 실제 사용자가 어느 단계에서 멈추는지 확인하기 전에 버튼과 기능을 한꺼번에 늘리지 않는 것이 좋다.</p>
+<h2>9. 다음 실제 확인은 작게</h2>
+<p>교사 1명과 학생 2–3명이 실제 사용할 태블릿으로 15–20분 동안 ‘그룹 선택 → 두 문장 입력 → 피드백 읽기 → 한 문장 수정 → 올리기’를 해 본다. 성공률 수치보다 ① 학생이 멈춘 위치 ② 교사가 말로 도와준 문장 ③ 키보드가 가린 곳 ④ 저장·게시를 혼동한 순간을 적는다. 이 실사용을 마친 뒤 지도약안의 입력 시간과 UI 우선순위를 조정한다.</p>
+<h2>자료와 결과물</h2>
+<ul>
+<li>함께 제공한 <code>도토_가상수업_지도약안.md</code>: 두 수업의 2차시 약안, 공통 조작 연습, 창작 동화, 평가 관찰 기준.</li>
+<li><code>도토_가상학생_원고모음.md</code>: 가상 학생 6명의 두 수업 원고와 수정 기록.</li>
+<li><a href="http://127.0.0.1:5173/teacher/board?simulation=review">서평 가상 수업 게시판</a></li>
+<li><a href="http://127.0.0.1:5173/teacher/board?simulation=heritage">국가유산 가상 수업 게시판</a></li>
+<li><a href="https://www.heritage.go.kr/heri/html/HtmlPage.do?pageNo=1_1_2_0&pg=%2Funesco%2FHeritage%2FHeritage_05.jsp">국가유산포털: 수원 화성</a></li>
+<li><a href="https://my.heritage.go.kr/public/commentary/culSelectDetail.do?ccbaAsno=0000310000000&ccbaCpno=1113700310000&ccbaCtcd=37&ccbaKdcd=11">국가유산포털: 경주 첨성대</a></li>
+</ul>
+<p>국가유산 관련 기초 사실은 위 공식 자료를 참고했다. 가상 인물의 글·발언·수업 진행은 이번 검토를 위해 구성했다.</p>
+</article>
+<article id="lessons"><p class="section-label">02 · 지도약안</p><h1>도토 가상 수업 지도약안</h1>
+<p>2026-09-05 · 초등 5–6학년 기준 · 교사 PC / 학생 태블릿 화면 키보드</p>
+<p>교사와 학생 모두 도토 사용이 처음이라는 가정이다. 두 수업은 각각 40분씩 2차시로 계획한다. 아래 시간은 수업 설계 시간이며 실제 수업 시간을 측정한 결과가 아니다. 3–4학년은 글 분량을 3–5문장으로 줄이고 말하기·종이 메모 시간을 늘린다. 1–2학년에게 그대로 적용하는 안은 아니다.</p>
+<h2>공통 준비와 약속</h2>
+<ul>
+<li>교사는 수업 전 10분 동안 연습 공간에서 그룹 이름 바꾸기 → 글 열기 → 구절 선택·피드백 → 삭제·휴지통 복원을 한 번 해 본다.</li>
+<li>학생은 태블릿을 가로 또는 세로 중 편한 방향으로 놓는다. 외장 키보드를 전제로 하지 않는다. 키보드 열기·숨기기와 문장 끝으로 커서 옮기기를 먼저 연습한다.</li>
+<li>첫 연습은 <strong>그룹의 + → 제목·한 문장 → 게시판으로 → 이어서 쓰기</strong> 네 동작으로 제한한다. 글꼴·색 바꾸기는 필수 활동에서 뺀다.</li>
+<li>교사는 화면에 실제로 누를 위치를 가리키며 한 번에 한 동작만 안내한다. 설명하는 동안 학생은 키보드를 잠시 숨긴다.</li>
+<li>친구 글은 게시했을 때만 읽는다. 초안을 완성하지 못해도 공개를 강요하지 않는다. 댓글은 ‘좋았던 점 하나 + 궁금한 점 하나’로 쓴다.</li>
+<li>학생의 타자 속도나 글자 수를 성취 점수로 쓰지 않는다. 종이에 생각을 먼저 적거나 짝에게 말한 뒤 입력해도 된다.</li>
+<li>현재 도토는 한 브라우저의 UI 시안이다. 실제 태블릿 수업은 교사·학생 연결과 재접속·저장을 구현하고 실제 기기 입력을 확인한 뒤 실시한다. 이번 가상 수업의 역할 선택 바는 연습용이며 학생 제품 화면에 추가할 메뉴가 아니다.</li>
+</ul>
+<h2>1. 서평 쓰기 — 우리 반이 권하는 책</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>교과·형태</td>
+<td>국어, 개인 글쓰기와 짝 읽기</td>
+</tr>
+<tr>
+<td>학습 목표</td>
+<td>책의 한 장면을 근거로 자기 생각을 밝히고, 친구에게 권하거나 아쉬운 점을 설명하는 짧은 서평을 쓴다.</td>
+</tr>
+<tr>
+<td>준비물</td>
+<td>미리 읽은 책 또는 아래의 가상 수업용 창작 동화, 종이 메모, 교사 PC·화면, 학생 태블릿</td>
+</tr>
+<tr>
+<td>도토 게시판 제목</td>
+<td>우리 반이 권하는 책</td>
+</tr>
+<tr>
+<td>주제 그룹</td>
+<td>추천하고 싶은 책 / 다른 생각이 든 책</td>
+</tr>
+<tr>
+<td>학생 산출물</td>
+<td>제목 + 5–7문장의 서평 한 편. 입력이 느린 학생은 핵심 3문장부터 쓴다.</td>
+</tr>
+<tr>
+<td>글의 순서</td>
+<td>책 소개 → 기억에 남는 장면 → 내 생각과 이유 → 권하고 싶은 사람 또는 아쉬운 점</td>
+</tr>
+</tbody></table>
+<h3>1차시: 읽고 생각하기·도토에 들어가기</h3>
+<table>
+<thead>
+<tr>
+<th>단계</th>
+<th align="right">시간</th>
+<th>교사의 안내</th>
+<th>학생 활동·도토 사용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>도입</td>
+<td align="right">5분</td>
+<td>‘재미있다’는 말만으로 친구가 읽고 싶어질지 이야기한다.</td>
+<td>서평과 줄거리 소개의 차이를 말한다.</td>
+</tr>
+<tr>
+<td>장면 고르기</td>
+<td align="right">10분</td>
+<td>장면 하나와 이유 하나를 함께 보여 준다.</td>
+<td>책을 읽고 기억에 남는 장면에 종이 표시를 한다.</td>
+</tr>
+<tr>
+<td>생각 정리</td>
+<td align="right">10분</td>
+<td>‘나는 이 장면이 __해서 __했다’ 문장 틀을 칠판에 쓴다.</td>
+<td>짝에게 먼저 말하고 종이에 핵심 낱말 3개를 적는다.</td>
+</tr>
+<tr>
+<td>첫 조작 연습</td>
+<td align="right">10분</td>
+<td>화면 키보드 열기, 그룹 +, 제목 입력, 게시판 복귀를 천천히 시범 보인다.</td>
+<td>각자 그룹에서 원고를 만들고 제목과 첫 문장을 쓴다. 초안을 다시 열어 본다.</td>
+</tr>
+<tr>
+<td>정리</td>
+<td align="right">5분</td>
+<td>완성되지 않은 글은 지금 게시하지 않아도 된다고 안내한다.</td>
+<td>다음 시간 이어 쓸 문장을 종이 메모로 남긴다.</td>
+</tr>
+</tbody></table>
+<h3>2차시: 쓰고 고치고 나누기</h3>
+<table>
+<thead>
+<tr>
+<th>단계</th>
+<th align="right">시간</th>
+<th>교사의 안내</th>
+<th>학생 활동·도토 사용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>다시 열기</td>
+<td align="right">5분</td>
+<td>새 글 +와 기존 글 ‘이어서 쓰기’를 구분한다.</td>
+<td>자기 초안을 다시 연다.</td>
+</tr>
+<tr>
+<td>초안 쓰기</td>
+<td align="right">13분</td>
+<td>교사 전체 글에서 막힌 학생을 찾아 짧은 질문을 준다.</td>
+<td>화면 키보드로 서평을 쓴다. 서식은 기본값을 쓴다.</td>
+</tr>
+<tr>
+<td>한 가지 고치기</td>
+<td align="right">10분</td>
+<td>‘정말 좋다’ 같은 구절을 선택하고 구체적인 질문 하나를 남긴다.</td>
+<td>피드백 목록·노란 구절을 읽고 이유나 경험을 한 문장 보탠다.</td>
+</tr>
+<tr>
+<td>공유</td>
+<td align="right">8분</td>
+<td>게시 여부를 학생이 고르게 하고 짝의 글을 읽도록 한다.</td>
+<td>게시 후 친구 글 한 편에 다정한 댓글을 남긴다.</td>
+</tr>
+<tr>
+<td>정리</td>
+<td align="right">4분</td>
+<td>무엇을 고쳤는지 말로 묻는다.</td>
+<td>수정 전후 차이를 말한다. 게시 후 더 고쳤다면 ‘게시글 업데이트’를 누른다.</td>
+</tr>
+</tbody></table>
+<p>교사 피드백 예: “어떤 점이 좋았나요? 우산을 기울인 장면과 내 경험을 연결해 한 문장 더 써 볼까요?”</p>
+<p>관찰 기준은 ① 책의 구체적인 장면을 언급했는가 ② 자기 생각에 이유가 있는가 ③ 피드백을 읽고 한 부분을 고쳤는가이다. 긴 글·화려한 글꼴·빠른 게시를 보상하지 않는다.</p>
+<h3>가상 수업용 창작 동화: 비를 나누는 우산</h3>
+<p>하늘이는 학교 현관에서 운동장을 바라보았다. 아침에 맑았던 하늘에서 비가 쏟아졌다. 가방에는 우산이 없었다. 친구들이 하나둘 떠난 뒤 지우가 노란 우산을 펴고 다가왔다.</p>
+<p>“큰길까지 같이 갈래?” 하늘이는 말없이 고개를 끄덕였다. 둘이 쓰기에는 우산이 조금 작았다. 지우는 하늘이 쪽으로 우산을 기울였다. 하늘이는 지우의 한쪽 어깨가 젖는 것을 보았다. 우산 손잡이를 가운데로 조금 옮기자 이번에는 두 아이의 소매 끝에 작은 물방울이 맺혔다.</p>
+<p>큰길에서 헤어질 때 하늘이는 고맙다는 말을 작게 했다. 집에 와서는 공책 한쪽에 노란 우산을 그렸다. 다음 날, 지우의 책상에 ‘어제는 네 덕분에 비 오는 길이 덜 무서웠어’라고 쓴 쪽지를 놓았다. 지우가 웃으며 쪽지를 접었다. 쉬는 시간에 둘은 창가에서 오늘의 하늘을 함께 올려다보았다.</p>
+<p>이 동화는 이번 가상 수업을 위해 만든 창작 예시이며 실제 출판된 도서가 아니다. 실제 서평 수업에서는 학급이 읽은 책으로 바꾼다.</p>
+<h2>2. 국가유산 조사 글 쓰기 — 우리 손으로 소개하는 국가유산</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>교과·형태</td>
+<td>사회·국어 통합, 짝 조사 후 개인 글쓰기</td>
+</tr>
+<tr>
+<td>학습 목표</td>
+<td>믿을 수 있는 자료에서 확인한 사실 두 가지와 자기 생각을 구분하고, 출처를 적어 국가유산 소개 글을 쓴다.</td>
+</tr>
+<tr>
+<td>준비물</td>
+<td>교사가 고른 공식 소개 자료 2개, 쉬운 말로 정리한 종이 자료, 출처 메모 칸, 학생 태블릿</td>
+</tr>
+<tr>
+<td>도토 게시판 제목</td>
+<td>우리 손으로 소개하는 국가유산</td>
+</tr>
+<tr>
+<td>주제 그룹</td>
+<td>수원 화성 / 경주 첨성대</td>
+</tr>
+<tr>
+<td>학생 산출물</td>
+<td>이름·위치, 사실 두 가지, 소중한 이유, 출처를 포함한 5–7문장. 느린 학생은 사실 하나부터 쓴다.</td>
+</tr>
+<tr>
+<td>글의 순서</td>
+<td>무엇·어디 → 확인한 사실 → 내 생각 → 기관·자료 제목·읽은 날짜</td>
+</tr>
+</tbody></table>
+<h3>1차시: 자료를 읽고 근거 모으기</h3>
+<table>
+<thead>
+<tr>
+<th>단계</th>
+<th align="right">시간</th>
+<th>교사의 안내</th>
+<th>학생 활동·도토 사용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>도입</td>
+<td align="right">5분</td>
+<td>두 유산의 사진을 교사 화면으로 보여 주고 궁금한 점을 묻는다.</td>
+<td>조사할 유산 하나를 선택한다.</td>
+</tr>
+<tr>
+<td>자료 읽기 시범</td>
+<td align="right">8분</td>
+<td>검색 결과의 첫 문장을 복사하는 대신 기관과 자료 제목을 확인하는 모습을 보여 준다.</td>
+<td>공식 자료에서 이름·위치를 찾아 표시한다.</td>
+</tr>
+<tr>
+<td>짝 조사</td>
+<td align="right">15분</td>
+<td>낯선 낱말을 설명하고, 사실과 추측을 구분하도록 돕는다.</td>
+<td>종이 자료 또는 미리 열어 준 자료 탭에서 사실 두 가지와 출처를 메모한다.</td>
+</tr>
+<tr>
+<td>말로 바꾸기</td>
+<td align="right">7분</td>
+<td>어려운 원문 한 문장을 쉬운 말로 바꾸어 말한다.</td>
+<td>읽은 자료를 잠시 덮고 자기 말로 설명한 뒤 낱말을 적는다.</td>
+</tr>
+<tr>
+<td>원고 만들기</td>
+<td align="right">5분</td>
+<td>각 유산 그룹의 +를 안내한다.</td>
+<td>제목과 첫 문장을 쓰고 초안으로 남긴다.</td>
+</tr>
+</tbody></table>
+<h3>2차시: 조사 글 작성·출처 확인·나누기</h3>
+<table>
+<thead>
+<tr>
+<th>단계</th>
+<th align="right">시간</th>
+<th>교사의 안내</th>
+<th>학생 활동·도토 사용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>다시 열기</td>
+<td align="right">5분</td>
+<td>초안과 종이 메모를 준비시킨다.</td>
+<td>자기 그룹의 원고를 연다.</td>
+</tr>
+<tr>
+<td>글쓰기</td>
+<td align="right">13분</td>
+<td>본문 카드에서 사실과 생각이 섞인 부분을 살핀다.</td>
+<td>종이 메모를 보며 화면 키보드로 글을 쓴다.</td>
+</tr>
+<tr>
+<td>근거 확인</td>
+<td align="right">10분</td>
+<td>“어디에서 읽었나요?”처럼 출처를 확인하는 피드백 하나를 준다.</td>
+<td>친구와 사실 두 가지·출처를 확인하고 고친다.</td>
+</tr>
+<tr>
+<td>공유</td>
+<td align="right">8분</td>
+<td>글을 같은 유산 그룹끼리 읽게 한다.</td>
+<td>게시하고 친구 글에 새롭게 안 점·질문 한 가지를 댓글로 쓴다.</td>
+</tr>
+<tr>
+<td>정리</td>
+<td align="right">4분</td>
+<td>사실과 자신의 보존 의견을 각각 한 가지 묻는다.</td>
+<td>오늘 알게 된 사실과 유산을 대하는 태도를 말한다.</td>
+</tr>
+</tbody></table>
+<p>관찰 기준은 ① 자료로 확인한 사실이 있는가 ② 원문의 어려운 표현을 이해하고 자기 말로 썼는가 ③ 출처가 적혀 있는가 ④ 보존에 관한 자기 생각이 있는가이다. 현재 앱에는 출처 전용 칸·이미지 첨부·자료 배포 기능이 없으므로, 이번 수업에서는 출처를 본문 끝에 적고 자료는 교사 화면·종이 자료로 제공한다.</p>
+<h3>사용할 공식 자료</h3>
+<ul>
+<li><a href="https://www.heritage.go.kr/heri/html/HtmlPage.do?pageNo=1_1_2_0&pg=%2Funesco%2FHeritage%2FHeritage_05.jsp">국가유산포털: 수원 화성</a>: 1794–1796년 축성, 거중기 등 축성 도구를 확인하는 자료.</li>
+<li><a href="https://my.heritage.go.kr/public/commentary/culSelectDetail.do?ccbaAsno=0000310000000&ccbaCpno=1113700310000&ccbaCtcd=37&ccbaKdcd=11">국가유산포털: 경주 첨성대</a>: 위치와 천문 관측 관련 해설, 선덕여왕 시기 건립 추정을 확인하는 자료. 자료의 ‘추정’ 표현을 확정 사실로 고쳐 쓰지 않는다.</li>
+</ul>
+<p>교사는 긴 웹주소를 학생이 직접 입력하게 하지 않는다. 자료를 열어 주거나 종이 자료 하단에 기관·제목·확인 날짜를 적어 준다. 웹페이지와 글쓰기 화면을 계속 오가는 일이 조사 활동보다 어려워지지 않게 한다.</p>
+</article>
+<article id="manuscripts"><p class="section-label">03 · 학생 원고</p><h1>도토 가상 학생 원고 모음</h1>
+<p>2026-09-05 · 가상 학생 6명 × 수업 2개</p>
+<p>모든 이름·글·피드백·댓글은 이번 UI 검토를 위해 AI가 만든 예시다. 실제 학생의 개인정보나 학습 결과가 아니다. 아래 글을 도토에서 순서대로 작성하여 게시·수정·댓글 흐름을 살펴보았다. 수업마다 게시 4개와 미게시 초안 2개를 의도적으로 남겼으며, 이 비율은 실제 수업의 완성률이 아니다. 서평의 공통 텍스트는 지도약안에 실은 창작 동화 『비를 나누는 우산』이다.</p>
+<h2>A. 서평 쓰기</h2>
+<h3>김하늘 — 작은 우산이 준 큰 마음</h3>
+<p>추천하고 싶은 책 · 게시 · 피드백 후 수정·재게시</p>
+<p>『비를 나누는 우산』은 비 오는 날 친구를 돕는 이야기다. 지우가 자기 어깨가 젖는데도 하늘이에게 우산을 기울이는 장면이 기억에 남았다. 나도 우산이 없던 날 친구의 도움을 받은 적이 있어서 그 장면이 더 따뜻하게 느껴졌다. 친구를 도와주고 싶은 아이에게 권한다.</p>
+<ul>
+<li>수정 전 구절: “이 책은 정말 좋다.”</li>
+<li>교사 피드백: “어떤 점이 좋았나요? 우산을 기울인 장면과 내 경험을 연결해 한 문장 더 써 볼까요?”</li>
+<li>바꾼 문장: “나도 우산이 없던 날 친구의 도움을 받은 적이 있어서 그 장면이 더 따뜻하게 느껴졌다.”</li>
+<li>이지우의 댓글: “내 경험을 넣어서 왜 좋았는지 더 잘 알겠어. 어떤 친구에게 권하고 싶니?”</li>
+</ul>
+<h3>이지우 — 나도 우산을 나눠 줄래</h3>
+<p>추천하고 싶은 책 · 게시</p>
+<p>내가 읽은 책은 『비를 나누는 우산』이다. 하늘이가 고맙다는 쪽지를 쓰는 장면을 좋아한다. 작은 친절에도 고마움을 표현할 수 있다는 걸 알았다. 나는 내일 친구에게 먼저 인사하고 싶다.</p>
+<h3>박서준 — 친절 뒤의 이야기도 궁금해</h3>
+<p>다른 생각이 든 책 · 게시 · 교사가 그룹 이동</p>
+<p>『비를 나누는 우산』에서 서로 돕는 모습은 좋았다. 하지만 두 아이가 너무 빨리 친해져서 조금 아쉬웠다. 다음 날 서먹하게 인사를 나누는 장면이 더 있었다면 마음이 바뀌는 과정을 잘 알 수 있었을 것 같다.</p>
+<p>처음에는 ‘추천하고 싶은 책’에 썼다. 교사가 글의 성격을 보고 ‘다른 생각이 든 책’으로 옮겼다. 원고와 게시본의 소속을 함께 바꾸는 상황을 연출했다.</p>
+<h3>최유나 — 고맙다는 말은 바로 해도 좋아</h3>
+<p>다른 생각이 든 책 · 게시</p>
+<p>하늘이는 집에 가서 쪽지를 썼다. 나는 우산을 함께 쓸 때 바로 고맙다고 말했어도 좋겠다고 생각했다. 쪽지는 마음을 오래 간직할 수 있어서 좋지만 상대가 기다릴 수도 있기 때문이다.</p>
+<h3>정도윤 — 비 오는 날 친구</h3>
+<p>추천하고 싶은 책 · 미게시 초안</p>
+<p>우산을 나누는 장면이 좋았다. 나도 비를 맞은 적이 있어서 하늘이 마음이 조금 이해됐다.</p>
+<h3>한소은 — 친구에게 권하는 책</h3>
+<p>추천하고 싶은 책 · 미게시 초안</p>
+<p>책 이름은 『비를 나누는 우산』이다. 내가 기억하는 장면은</p>
+<p>입력 중인 문장 그대로 남겼다. 글을 시작하기 어려운 학생에게 문장 틀과 말로 설명하는 시간이 필요한 상황이다.</p>
+<h2>B. 국가유산 조사 글 쓰기</h2>
+<h3>김하늘 — 돌을 들어 올린 지혜</h3>
+<p>수원 화성 · 게시</p>
+<p>수원 화성은 경기도 수원에 있는 조선 시대 성곽이다. 1794년에 짓기 시작하여 1796년에 완성했다. 큰 돌을 옮길 때 거중기 같은 도구를 사용했다는 점이 인상 깊다. 나는 화성이 건물뿐 아니라 옛사람의 지혜를 알려 주어서 보존해야 한다고 생각한다. 출처: 국가유산포털, 수원 화성 소개.</p>
+<h3>이지우 — 하늘을 살핀 옛사람들</h3>
+<p>경주 첨성대 · 게시</p>
+<p>첨성대는 경상북도 경주에 있다. 신라 선덕여왕 때 세운 것으로 추정되는 천문 관측 유산이다. 옛사람들이 하늘을 살피며 농사 시기를 생각했다는 점을 새롭게 알았다. 오래된 돌을 함부로 만지거나 올라가지 말아야겠다. 출처: 국가유산포털, 경주 첨성대 해설.</p>
+<h3>박서준 — 수원 화성의 가치</h3>
+<p>수원 화성 · 게시 · 피드백 후 출처 추가·재게시</p>
+<p>수원 화성은 1794년부터 1796년까지 지었다. 성을 만들면서 거중기를 사용했다. 옛사람들의 기술을 볼 수 있어서 소중하다. 출처: 국가유산청 국가유산포털, ‘수원 화성’ 소개. 읽은 날: 2026년 9월 5일.</p>
+<ul>
+<li>수정 전: 마지막 출처 문장 없이 게시했다.</li>
+<li>교사 피드백: “자료를 어디에서 읽었나요? 글 끝에 기관 이름, 자료 제목, 읽은 날짜를 적어 주세요. 자료 문장을 그대로 옮겼다면 내 말로 바꿔 봅시다.”</li>
+<li>최유나의 댓글: “거중기가 어떤 모습인지 궁금해. 다음에는 사진을 함께 보고 싶어.”</li>
+</ul>
+<h3>최유나 — 첨성대는 왜 소중할까</h3>
+<p>경주 첨성대 · 게시</p>
+<p>첨성대는 경주에 있는 신라 시대의 유산이다. 하늘을 관찰하는 것과 관련이 있다고 안내되어 있다. 책에서 본 모습을 직접 보고 싶다. 오래된 유산을 깨끗하게 지켜야 다음 세대도 볼 수 있다. 출처: 국가유산포털의 경주 첨성대 소개.</p>
+<h3>정도윤 — 정조와 수원 화성</h3>
+<p>수원 화성 · 미게시 초안</p>
+<p>내가 조사한 곳은 수원 화성이다. 정조 때 만든 성곽이다. 왜 이곳에 성을 만들었는지 더 찾아보고 싶다.</p>
+<h3>한소은 — 경주에서 만나는 첨성대</h3>
+<p>경주 첨성대 · 미게시 초안</p>
+<p>이름: 경주 첨성대. 위치: 경상북도 경주시. 새롭게 알게 된 사실은</p>
+<p>이름·위치를 찾은 뒤 다음 사실을 정리하는 도중 멈춘 상황이다. 초안을 비공개로 유지하고 다음 활동에서 이어 쓴다.</p>
+<h2>조사 자료</h2>
+<p>위 원고의 국가유산 기초 사실은 <a href="https://www.heritage.go.kr/heri/html/HtmlPage.do?pageNo=1_1_2_0&pg=%2Funesco%2FHeritage%2FHeritage_05.jsp">국가유산포털의 수원 화성 소개</a>와 <a href="https://my.heritage.go.kr/public/commentary/culSelectDetail.do?ccbaAsno=0000310000000&ccbaCpno=1113700310000&ccbaCtcd=37&ccbaKdcd=11">경주 첨성대 해설</a>을 참고했다. 완성도가 서로 다른 가상 원고이며 모든 글이 지도약안의 출처 형식·문장 수를 충족하는 모범 답안은 아니다.</p>
+</article></main>
+<footer>도토 프로젝트 · 이 문서는 브라우저에서 바로 읽거나 인쇄할 수 있습니다. 수업 게시판 링크는 도토 개발 서버가 실행 중일 때 열립니다.</footer>
+</body>
+</html>

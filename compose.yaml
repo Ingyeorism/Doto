@@ -1,0 +1,28 @@
+name: doto
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - doto_logs:/app/logs
+    environment:
+      PUBLIC_URL: https://${DOMAIN:?Set DOMAIN in .env}
+      STUN_URLS: ${STUN_URLS:-stun:stun.l.google.com:19302}
+  https:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [app]
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - certificates:/data
+      - caddy_config:/config
+volumes:
+  doto_logs:
+  certificates:
+  caddy_config:
