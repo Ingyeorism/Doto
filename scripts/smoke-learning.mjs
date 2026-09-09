@@ -41,7 +41,7 @@ const optional = cleanGroup({
 });
 assert.deepEqual(optional.questions, ["질문 하나"]);
 assert.equal(optional.resources.length, 1);
-assert.equal(optional.resources[0].title, "선생님 자료");
+assert.equal(optional.resources[0].title, "추가자료");
 assert.equal(
   cleanGroup({
     ...initialGroups[0],

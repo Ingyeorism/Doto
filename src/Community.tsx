@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useId, useRef, useState, type PointerEvent } from "react";
 import {
   BookOpen,
   GripVertical,
@@ -24,6 +24,7 @@ import { FeedbackCards } from "./FeedbackSurface";
 import { GroupLearningFields, LessonMaterials } from "./GroupLearning";
 import { cleanGroup, publicationState } from "./learning";
 import { createUuid } from "./uuid";
+import { sortBoardCards } from "./board-order";
 
 const sortNames: Record<PostSort, string> = {
   oldest: "새 글 아래",
@@ -32,7 +33,9 @@ const sortNames: Record<PostSort, string> = {
   title: "제목순",
   manual: "직접 배치",
 };
-type DragItem = { kind: "group"; id: string } | { kind: "post"; id: number };
+type DragItem =
+  { kind: "group"; id: string } | { kind: "post" | "draft"; id: number };
+type DropTarget = { groupId: string; beforeId?: number };
 function ExpandablePost({
   doc,
   autoExpand,
@@ -143,11 +146,13 @@ export function Community({
   const [groupDraft, setGroupDraft] = useState<BoardGroup | null>(null);
   const [learningBusy, setLearningBusy] = useState(false);
   const [drag, setDrag] = useState<DragItem | null>(null);
-  const [over, setOver] = useState<string | null>(null);
+  const [over, setOver] = useState<DropTarget | null>(null);
   const pointerDrag = useRef<{
     item: DragItem;
     x: number;
     y: number;
+    clientX: number;
+    clientY: number;
     moved: boolean;
   } | null>(null);
   const [annotating, setAnnotating] = useState(false);
@@ -162,33 +167,89 @@ export function Community({
     (d) => d.studentId === currentUserId && !d.published,
   );
   const sorted = (groupId: string) =>
-    [...posts.filter((p) => p.groupId === groupId)].sort((a, b) => {
-      const time = (d: StudentDoc) => d.publishedAt ?? d.createdAt;
-      if (sort === "author")
-        return a.name.localeCompare(b.name, "ko") || time(a) - time(b);
-      if (sort === "title")
-        return a.title.localeCompare(b.title, "ko") || time(a) - time(b);
-      if (sort === "manual")
-        return a.manualOrder - b.manualOrder || a.id - b.id;
-      return sort === "newest" ? time(b) - time(a) : time(a) - time(b);
-    });
+    sortBoardCards(
+      posts.filter((p) => p.groupId === groupId),
+      sort,
+      drafts.filter((d) => d.groupId === groupId),
+    );
   const beginDrag = (e: PointerEvent<HTMLButtonElement>, item: DragItem) => {
     if (!teacher || e.button !== 0) return;
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
-    pointerDrag.current = { item, x: e.clientX, y: e.clientY, moved: false };
-  };
-  const dragTarget = (e: PointerEvent) => {
-    const element = document.elementFromPoint(e.clientX, e.clientY);
-    return {
-      groupId:
-        element?.closest<HTMLElement>("[data-group-id]")?.dataset.groupId,
-      postId: element?.closest<HTMLElement>("[data-post-id]")?.dataset.postId,
+    pointerDrag.current = {
+      item,
+      x: e.clientX,
+      y: e.clientY,
+      clientX: e.clientX,
+      clientY: e.clientY,
+      moved: false,
     };
   };
+  const dragTarget = (e: {
+    clientX: number;
+    clientY: number;
+  }): DropTarget | null => {
+    const group = document
+      .elementFromPoint(e.clientX, e.clientY)
+      ?.closest<HTMLElement>("[data-group-id]");
+    if (!group?.dataset.groupId) return null;
+    const active = pointerDrag.current?.item;
+    const next = Array.from(
+      group.querySelectorAll<HTMLElement>("[data-board-card-id]"),
+    )
+      .filter(
+        (card) =>
+          active?.kind === "group" ||
+          Number(card.dataset.boardCardId) !== active?.id,
+      )
+      .find((card) => {
+        const rect = card.getBoundingClientRect();
+        return e.clientY < rect.top + rect.height / 2;
+      });
+    return {
+      groupId: group.dataset.groupId,
+      beforeId: next ? Number(next.dataset.boardCardId) : undefined,
+    };
+  };
+  const updateDropTarget = (target: DropTarget | null) =>
+    setOver((previous) =>
+      previous?.groupId === target?.groupId &&
+      previous?.beforeId === target?.beforeId
+        ? previous
+        : target,
+    );
+  useEffect(() => {
+    if (!drag) return;
+    let frame: number;
+    const scroll = () => {
+      const pointer = pointerDrag.current;
+      if (!pointer?.moved) return;
+      const edge = 96;
+      const delta =
+        pointer.clientY < edge
+          ? -Math.min(14, (edge - pointer.clientY) / 4)
+          : pointer.clientY > window.innerHeight - edge
+            ? Math.min(14, (pointer.clientY - window.innerHeight + edge) / 4)
+            : 0;
+      if (
+        delta &&
+        pointer.clientY >= 0 &&
+        pointer.clientY <= window.innerHeight
+      ) {
+        const before = window.scrollY;
+        window.scrollBy(0, delta);
+        if (window.scrollY !== before) updateDropTarget(dragTarget(pointer));
+      }
+      frame = window.requestAnimationFrame(scroll);
+    };
+    frame = window.requestAnimationFrame(scroll);
+    return () => window.cancelAnimationFrame(frame);
+  }, [drag]);
   const moveDrag = (e: PointerEvent) => {
     const active = pointerDrag.current;
     if (!active) return;
+    active.clientX = e.clientX;
+    active.clientY = e.clientY;
     if (
       !active.moved &&
       Math.hypot(e.clientX - active.x, e.clientY - active.y) < 8
@@ -196,22 +257,15 @@ export function Community({
       return;
     active.moved = true;
     setDrag(active.item);
-    setOver(dragTarget(e).groupId ?? null);
+    updateDropTarget(dragTarget(e));
   };
   const finishDrag = (e: PointerEvent) => {
     const active = pointerDrag.current;
     const target = dragTarget(e);
-    if (active?.moved && target.groupId) {
+    if (active?.moved && target) {
       if (active.item.kind === "group")
         onReorderGroup(active.item.id, target.groupId);
-      else
-        onMovePost(
-          active.item.id,
-          target.groupId,
-          sort === "manual" && target.postId
-            ? Number(target.postId)
-            : undefined,
-        );
+      else onMovePost(active.item.id, target.groupId, target.beforeId);
     }
     pointerDrag.current = null;
     setDrag(null);
@@ -221,6 +275,22 @@ export function Community({
     setSelected(id);
     setMessage("");
     setAnnotating(false);
+  };
+  const dropClass = (item: StudentDoc, cards: StudentDoc[]) => {
+    if (
+      !drag ||
+      drag.kind === "group" ||
+      over?.groupId !== item.groupId ||
+      drag.id === item.id
+    )
+      return "";
+    if (over.beforeId === item.id) return "drop-before";
+    if (
+      over.beforeId === undefined &&
+      cards.filter((card) => card.id !== drag.id).at(-1)?.id === item.id
+    )
+      return "drop-after";
+    return "";
   };
   return (
     <main className="community-page grouped-board">
@@ -277,6 +347,31 @@ export function Community({
           {posts.length}개의 글
         </span>
       </div>
+      {!teacher && drafts.length > 0 && (
+        <section className="my-drafts" aria-label="내가 쓰던 글">
+          <h2>
+            내가 쓰던 글 <span className="count-tag">{drafts.length}</span>
+          </h2>
+          <p>
+            아직 게시하지 않은 글이에요. 나갔다 와도 여기서 이어 쓸 수 있어요.
+          </p>
+          <div className="my-draft-list">
+            {drafts.map((draft) => (
+              <button key={draft.id} onClick={() => onWrite(draft.id)}>
+                <span>
+                  <small>
+                    {groups.find((g) => g.id === draft.groupId)?.title}
+                  </small>
+                  <strong>{draft.title || "아직 제목이 없는 이야기"}</strong>
+                </span>
+                <span className="text-link">
+                  <Pencil size={15} /> 이어 쓰기
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
       <div className="community-toolbar">
         <div className="row gap-10 group-board-controls">
           {teacher ? (
@@ -338,183 +433,171 @@ export function Community({
           setOver(null);
         }}
       >
-        {groups.map((group, index) => (
-          <section
-            key={group.id}
-            className={`board-group group-tone-${index % 3} ${over === group.id ? "drag-over" : ""}`}
-            aria-label={group.title}
-            data-group-id={group.id}
-          >
-            <header className="group-heading">
-              <div className="group-title-row">
-                {teacher && (
+        {groups.map((group, index) => {
+          const cards = sorted(group.id);
+          return (
+            <section
+              key={group.id}
+              className={`board-group group-tone-${index % 3} ${over?.groupId === group.id ? "drag-over" : ""}`}
+              aria-label={group.title}
+              data-group-id={group.id}
+            >
+              <header className="group-heading">
+                <div className="group-title-row">
+                  {teacher && (
+                    <button
+                      className="drag-handle"
+                      onPointerDown={(e) =>
+                        beginDrag(e, { kind: "group", id: group.id })
+                      }
+                      aria-label={`${group.title} 그룹 순서 드래그`}
+                      title="그룹 순서 드래그"
+                    >
+                      <GripVertical size={18} />
+                    </button>
+                  )}
+                  <h2>{group.title}</h2>
+                  <span className="count-tag">
+                    {posts.filter((p) => p.groupId === group.id).length}
+                  </span>
                   <button
-                    className="drag-handle"
-                    onPointerDown={(e) =>
-                      beginDrag(e, { kind: "group", id: group.id })
-                    }
-                    aria-label={`${group.title} 그룹 순서 드래그`}
-                    title="그룹 순서 드래그"
+                    className="group-add"
+                    aria-label={`${group.title}에 새 글 쓰기`}
+                    title="이 그룹에 새 글 쓰기"
+                    onClick={() => onCreate(group.id)}
                   >
-                    <GripVertical size={18} />
-                  </button>
-                )}
-                <h2>{group.title}</h2>
-                <span className="count-tag">
-                  {posts.filter((p) => p.groupId === group.id).length}
-                </span>
-                <button
-                  className="group-add"
-                  aria-label={`${group.title}에 새 글 쓰기`}
-                  title="이 그룹에 새 글 쓰기"
-                  onClick={() => onCreate(group.id)}
-                >
-                  <Plus size={22} />
-                </button>
-              </div>
-              <p>{group.description || "이곳에 이야기를 모아 보세요."}</p>
-              <LessonMaterials group={group} />
-              {teacher && (
-                <div className="group-management">
-                  <button
-                    className="text-link"
-                    onClick={() => setGroupDraft({ ...group })}
-                  >
-                    <Settings2 size={14} />
-                    그룹 설정
+                    <Plus size={22} />
                   </button>
                 </div>
-              )}
-            </header>
-            <div className="group-posts">
-              {drafts
-                .filter((d) => d.groupId === group.id)
-                .map((draft) => (
-                  <article className="group-draft" key={draft.id}>
-                    <span className="pill muted">작성 중 · 비공개</span>
-                    <button onClick={() => onWrite(draft.id)}>
-                      <h3>{draft.title || "아직 제목이 없는 이야기"}</h3>
-                      <p>
-                        {draft.paragraphs.join(" ").slice(0, 90) ||
-                          "어떤 이야기로 시작해 볼까요?"}
-                      </p>
-                      <span className="text-link">
-                        <Pencil size={14} />
-                        이어서 쓰기
-                      </span>
-                    </button>
-                    {teacher && (
-                      <label className="post-move-control">
-                        그룹 이동
-                        <select
-                          aria-label={`${draft.title || "작성 중인 글"} 그룹 이동`}
-                          value={draft.groupId}
-                          onChange={(e) =>
-                            onUpdate(draft.id, { groupId: e.target.value })
-                          }
-                        >
-                          {groups.map((g) => (
-                            <option key={g.id} value={g.id}>
-                              {g.title}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    )}
-                  </article>
-                ))}
-              {sorted(group.id).map((item) => (
-                <article
-                  key={item.id}
-                  className={`group-post ${drag?.kind === "post" && drag.id === item.id ? "is-dragging" : ""}`}
-                  data-post-id={item.id}
-                >
-                  <div className="post-author">
-                    <span className="initial-avatar">
-                      {item.name.slice(-2)}
-                    </span>
-                    <strong>{item.name}</strong>
-                    {teacher && (
-                      <button
-                        className="drag-handle"
-                        onPointerDown={(e) =>
-                          beginDrag(e, { kind: "post", id: item.id })
-                        }
-                        aria-label={`${item.title} 글 이동 드래그`}
-                        title="다른 그룹으로 드래그"
-                      >
-                        <GripVertical size={17} />
-                      </button>
-                    )}
-                  </div>
-                  <ExpandablePost
-                    key={`${item.id}-${group.id}-${!!group.autoExpand}`}
-                    doc={item}
-                    autoExpand={!!group.autoExpand}
-                    onOpen={() => openPost(item.id)}
-                  />
-                  <footer>
-                    {item.studentId === currentUserId &&
-                      docs.some(
-                        (d) =>
-                          d.id === item.id &&
-                          publicationState(d, item) === "changed",
-                      ) && (
-                        <span className="post-update-note">
-                          고친 내용은 아직 올리지 않았어요
-                        </span>
-                      )}
+                <p>{group.description || "이곳에 이야기를 모아 보세요."}</p>
+                <LessonMaterials group={group} />
+                {teacher && (
+                  <div className="group-management">
                     <button
-                      className="subtle-control"
-                      onClick={() => openPost(item.id)}
+                      className="text-link"
+                      onClick={() => setGroupDraft({ ...group })}
                     >
-                      <MessageCircle size={14} />
-                      {comments[item.id]?.length ?? 0}
+                      <Settings2 size={14} />
+                      그룹 설정
                     </button>
-                    {item.studentId === currentUserId && (
-                      <button
-                        className="text-link"
-                        onClick={() => onWrite(item.id)}
-                      >
-                        <Pencil size={14} />내 글 수정
+                  </div>
+                )}
+              </header>
+              <div className="group-posts">
+                {cards.map((item) =>
+                  !item.published ? (
+                    <article
+                      className={`group-draft ${drag?.kind === "draft" && drag.id === item.id ? "is-dragging" : ""} ${dropClass(item, cards)}`}
+                      key={item.id}
+                      data-board-card-id={item.id}
+                    >
+                      <div className="row space-between">
+                        <span className="pill muted">작성 중 · 비공개</span>
+                        {teacher && (
+                          <button
+                            className="drag-handle"
+                            onPointerDown={(e) =>
+                              beginDrag(e, { kind: "draft", id: item.id })
+                            }
+                            aria-label={`${item.title || "작성 중인 글"} 글 이동 드래그`}
+                            title="원하는 위치로 드래그"
+                          >
+                            <GripVertical size={17} />
+                          </button>
+                        )}
+                      </div>
+                      <button onClick={() => onWrite(item.id)}>
+                        <h3>{item.title || "아직 제목이 없는 이야기"}</h3>
+                        <p>
+                          {item.paragraphs.join(" ").slice(0, 90) ||
+                            "어떤 이야기로 시작해 볼까요?"}
+                        </p>
+                        <span className="text-link">
+                          <Pencil size={14} />
+                          이어서 쓰기
+                        </span>
                       </button>
-                    )}
-                  </footer>
-                  {teacher && (
-                    <label className="post-move-control">
-                      그룹 이동
-                      <select
-                        aria-label={`${item.title} 그룹 이동`}
-                        value={item.groupId}
-                        onChange={(e) => onMovePost(item.id, e.target.value)}
-                      >
-                        {groups.map((g) => (
-                          <option key={g.id} value={g.id}>
-                            {g.title}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  )}
-                </article>
-              ))}
-              {sorted(group.id).length === 0 &&
-                !drafts.some((d) => d.groupId === group.id) && (
-                  <div className="empty-group">
+                    </article>
+                  ) : (
+                    <article
+                      key={item.id}
+                      className={`group-post ${drag?.kind === "post" && drag.id === item.id ? "is-dragging" : ""} ${dropClass(item, cards)}`}
+                      data-post-id={item.id}
+                      data-board-card-id={item.id}
+                    >
+                      <div className="post-author">
+                        <span className="initial-avatar">
+                          {item.name.slice(-2)}
+                        </span>
+                        <strong>{item.name}</strong>
+                        {teacher && (
+                          <button
+                            className="drag-handle"
+                            onPointerDown={(e) =>
+                              beginDrag(e, { kind: "post", id: item.id })
+                            }
+                            aria-label={`${item.title} 글 이동 드래그`}
+                            title="원하는 위치로 드래그"
+                          >
+                            <GripVertical size={17} />
+                          </button>
+                        )}
+                      </div>
+                      <ExpandablePost
+                        key={`${item.id}-${group.id}-${!!group.autoExpand}`}
+                        doc={item}
+                        autoExpand={!!group.autoExpand}
+                        onOpen={() => openPost(item.id)}
+                      />
+                      <footer>
+                        {item.studentId === currentUserId &&
+                          docs.some(
+                            (d) =>
+                              d.id === item.id &&
+                              publicationState(d, item) === "changed",
+                          ) && (
+                            <span className="post-update-note">
+                              고친 내용은 아직 올리지 않았어요
+                            </span>
+                          )}
+                        <button
+                          className="subtle-control"
+                          onClick={() => openPost(item.id)}
+                        >
+                          <MessageCircle size={14} />
+                          {comments[item.id]?.length ?? 0}
+                        </button>
+                        {item.studentId === currentUserId && (
+                          <button
+                            className="text-link"
+                            onClick={() => onWrite(item.id)}
+                          >
+                            <Pencil size={14} />내 글 수정
+                          </button>
+                        )}
+                      </footer>
+                    </article>
+                  ),
+                )}
+                {cards.length === 0 && (
+                  <div
+                    className={`empty-group ${drag && drag.kind !== "group" && over?.groupId === group.id ? "drop-before" : ""}`}
+                  >
                     <BookOpen size={24} />
                     <p>첫 이야기를 기다리고 있어요.</p>
                   </div>
                 )}
-              <button
-                className="group-new-post"
-                onClick={() => onCreate(group.id)}
-              >
-                <Plus size={18} />
-                <span>이 그룹에 글 쓰기</span>
-              </button>
-            </div>
-          </section>
-        ))}
+                <button
+                  className="group-new-post"
+                  onClick={() => onCreate(group.id)}
+                >
+                  <Plus size={18} />
+                  <span>이 그룹에 글 쓰기</span>
+                </button>
+              </div>
+            </section>
+          );
+        })}
         {teacher && (
           <button
             className="add-group-tile"
@@ -728,6 +811,25 @@ export function Community({
                   <h2>{post.title}</h2>
                   <DocumentBody doc={post} />
                 </article>
+                {(teacher || post.studentId === currentUserId) &&
+                  liveDoc &&
+                  notes.length > 0 && (
+                    <section
+                      className="board-private-feedback"
+                      aria-label="선생님 피드백"
+                    >
+                      <h3>
+                        선생님 피드백{" "}
+                        <span className="count-tag">{notes.length}</span>
+                      </h3>
+                      <FeedbackCards
+                        doc={liveDoc}
+                        feedback={notes}
+                        role={teacher ? "teacher" : "student"}
+                        onResponse={onFeedbackResponse}
+                      />
+                    </section>
+                  )}
                 <section className="board-comments">
                   <h3>
                     <MessageCircle size={17} />

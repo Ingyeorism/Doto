@@ -3,6 +3,64 @@ import { Hand } from "lucide-react";
 import type { BoardGroup, HelpRequest, Participant, StudentDoc } from "./data";
 import { Button, Modal } from "./ui";
 
+export function HelpNotifications({
+  participants,
+  docs,
+  onOpen,
+}: {
+  participants: Participant[];
+  docs: StudentDoc[];
+  onOpen: (docId?: number) => void;
+}) {
+  const [dismissed, setDismissed] = useState<string[]>([]);
+  const requests = participants.flatMap((p) => {
+    if (!p.help) return [];
+    const key = `${p.id}:${p.help.docId ?? "board"}:${p.help.createdAt}`;
+    return dismissed.includes(key)
+      ? []
+      : [{ participant: p, help: p.help, key }];
+  });
+  if (!requests.length) return null;
+  return (
+    <aside
+      className="help-notifications"
+      aria-label="새 도움 요청"
+      aria-live="polite"
+    >
+      {requests.map(({ participant, help, key }) => {
+        const doc = docs.find((d) => d.id === help.docId);
+        const dismiss = () => setDismissed((keys) => [...keys, key]);
+        return (
+          <section className="help-notification" key={key} role="status">
+            <strong>
+              <Hand size={17} /> {participant.name} 학생이 도움을 요청했어요
+            </strong>
+            <p>
+              {doc
+                ? doc.title || "아직 제목이 없는 이야기"
+                : "게시판에서 보낸 요청"}
+            </p>
+            {help.kind === "move" && <p>다른 그룹으로 글을 옮겨 주세요.</p>}
+            {help.note && <blockquote>{help.note}</blockquote>}
+            <div className="row gap-10">
+              <Button
+                variant="primary"
+                onClick={() => {
+                  dismiss();
+                  onOpen(doc?.id);
+                }}
+              >
+                {doc ? "요청한 글 보기" : "학생 보기"}
+              </Button>
+              <Button onClick={dismiss}>나중에 보기</Button>
+            </div>
+          </section>
+        );
+      })}
+    </aside>
+  );
+}
+
 export function HelpButton({
   participant,
   groups,
@@ -24,6 +82,8 @@ export function HelpButton({
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const pendingHelp =
+    !doc || participant?.help?.docId === doc.id ? participant?.help : undefined;
   const submit = async (request?: HelpRequest) => {
     if (busy || !connected) return;
     setBusy(true);
@@ -44,7 +104,7 @@ export function HelpButton({
   return (
     <>
       <Button
-        className={participant?.help ? "help-pending" : ""}
+        className={pendingHelp ? "help-pending" : ""}
         onClick={() => {
           setKind("writing");
           setNote("");
@@ -54,12 +114,12 @@ export function HelpButton({
         }}
       >
         <Hand size={17} />
-        {participant?.help ? "도움 요청 중" : label}
+        {pendingHelp ? "도움 요청 중" : label}
       </Button>
       {open && (
         <Modal
           title={
-            participant?.help
+            pendingHelp
               ? "선생님께 도움을 요청했어요"
               : "어떤 도움이 필요한가요?"
           }
@@ -74,15 +134,15 @@ export function HelpButton({
                 {error}
               </p>
             )}
-            {participant?.help ? (
+            {pendingHelp ? (
               <>
                 <p>
-                  {participant.help.kind === "move"
-                    ? `‘${groups.find((g) => g.id === participant.help?.targetGroupId)?.title ?? "다른 그룹"}’으로 글을 옮겨 달라고 했어요.`
+                  {pendingHelp.kind === "move"
+                    ? `‘${groups.find((g) => g.id === pendingHelp.targetGroupId)?.title ?? "다른 그룹"}’으로 글을 옮겨 달라고 했어요.`
                     : "선생님이 도와줄 때까지 할 수 있는 부분을 써 봐요."}
                 </p>
-                {participant.help.note && (
-                  <blockquote>{participant.help.note}</blockquote>
+                {pendingHelp.note && (
+                  <blockquote>{pendingHelp.note}</blockquote>
                 )}
                 <Button
                   disabled={!connected || busy}

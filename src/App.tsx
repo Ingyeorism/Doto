@@ -12,13 +12,14 @@ import {
   QrCode,
   Settings as SettingsIcon,
   Sprout,
+  Tablet,
   X,
 } from "lucide-react";
 import { Teacher } from "./Teacher";
 import { Community } from "./Community";
 import { WritingPage } from "./Student";
 import { TrashPanel } from "./TrashPanel";
-import { HelpButton } from "./HelpRequest";
+import { HelpButton, HelpNotifications } from "./HelpRequest";
 import { Button, IconButton, Logo, Modal, Toggle } from "./ui";
 import {
   Classroom,
@@ -30,13 +31,18 @@ import { LiveContext, RemoteCursorContext } from "./collaboration";
 import { exportLesson } from "./export-lesson";
 import { downloadDiagnostics } from "./diagnostics";
 import type { Feedback, FeedbackSelection, HelpRequest } from "./data";
+import { RoomStart, RoomSetup, HostRoom, DimScreen } from "./RoomScreens";
+import { useHostDevice } from "./use-host-device";
+import { UsageConsentNotice } from "./UsageConsent";
+import { recordUsageConsent } from "./usage-consent";
 
 const classroom = new Classroom();
 const routeFromUrl = () => {
   const [, area, page, docId] = location.pathname.split("/");
   return {
     role: (area === "student" ? "student" : "teacher") as Role,
-    page: page || "start",
+    page: area === "join" ? "join" : page || "start",
+    host: area === "host",
     docId: Number(docId),
   };
 };
@@ -51,6 +57,9 @@ export default function App() {
   const [records, setRecords] = useState<SavedLesson[]>([]);
   const [qr, setQr] = useState("");
   const [promptDraft, setPromptDraft] = useState("");
+  const hostDevice = useHostDevice(
+    classroom.isHost && !!state.lesson && !state.lesson.ended,
+  );
   const run = async (fn: () => Promise<unknown>, success?: string) => {
     setBusy(true);
     classroom.clearError();
@@ -64,20 +73,28 @@ export default function App() {
     }
   };
   const go = (page: string, role = route.role, docId?: number) => {
-    const path = `/${role}/${page}${docId !== undefined ? "/" + docId : ""}`;
+    const host =
+      role === "teacher" &&
+      (page === "setup" ||
+        (classroom.isHost && !["start", "history", "join"].includes(page)));
+    const path =
+      page === "join"
+        ? "/join"
+        : `/${host ? "host" : role}/${page}${docId !== undefined ? "/" + docId : ""}`;
     history.pushState(null, "", path);
-    setRoute({ role, page, docId: docId ?? NaN });
+    setRoute({ role, page, host, docId: docId ?? NaN });
     setDialog(null);
     window.scrollTo(0, 0);
   };
   useEffect(() => {
     const initial = routeFromUrl();
     if (!boot)
-      boot = ["start", "join", "history"].includes(initial.page)
+      boot = ["start", "setup", "join", "history"].includes(initial.page)
         ? Promise.resolve()
-        : classroom.restore(initial.role);
+        : classroom.restore(initial.role, initial.host);
     void boot.finally(() => setLoading(false));
     const change = () => {
+      void classroom.flush();
       setRoute(routeFromUrl());
       setDialog(null);
     };
@@ -116,17 +133,20 @@ export default function App() {
   const lesson = state.lesson;
   const session = state.session;
   const teacher = session?.role === "teacher" && route.role === "teacher";
-  const validSession = !!lesson && session?.role === route.role;
+  const validSession =
+    !!lesson &&
+    session?.role === route.role &&
+    (!route.host || classroom.isHost);
   const b = lesson?.board;
   const page =
-    !validSession && !["start", "join", "history"].includes(route.page)
+    !validSession && !["start", "setup", "join", "history"].includes(route.page)
       ? route.role === "student"
         ? "join"
         : "start"
       : route.page;
-  const lobby = ["start", "join", "history"].includes(page);
+  const lobby = ["start", "setup", "join", "history"].includes(page);
   const inviteUrl = session
-    ? `${classroom.publicUrl}/student/join?code=${session.code}&lesson=${session.lessonId}`
+    ? `${classroom.publicUrl}/join?code=${session.code}&lesson=${session.lessonId}`
     : "";
   useEffect(() => {
     if (dialog === "invite" && inviteUrl)
@@ -138,11 +158,11 @@ export default function App() {
   }, [dialog, inviteUrl]);
   const act = (action: unknown, success?: string) =>
     run(() => classroom.action(action), success);
-  const start = (record?: SavedLesson) =>
+  const start = (record?: SavedLesson, title?: string) =>
     run(async () => {
-      await classroom.start(record);
-      go("overview", "teacher");
-      setDialog("invite");
+      recordUsageConsent("create");
+      await classroom.start(record, title);
+      go("room", "teacher");
     });
   const live = useMemo(
     () => ({
@@ -154,7 +174,7 @@ export default function App() {
     [],
   );
   const writingDoc = b?.docs.find(
-    (d) => d.id === route.docId && d.studentId === session?.id,
+    (d) => d.id === route.docId && d.studentId === (teacher ? -1 : session?.id),
   );
   const feedback = (
     docId: number,
@@ -198,7 +218,10 @@ export default function App() {
             : null
         }
       >
-        <div className={`app live-app screen-${page} role-${route.role}`}>
+        <div
+          className={`app live-app th-preview th-live screen-${page} role-${route.role}`}
+          data-connection-status={state.status}
+        >
           <header className="app-header">
             <Logo
               onClick={() =>
@@ -231,9 +254,14 @@ export default function App() {
                         <QrCode size={19} />
                       </Button>
                       <span className="header-connected">
-                        <span className="status-dot" />
-                        연결{" "}
-                        {b!.participants!.filter((p) => p.connected).length}명
+                        <span
+                          className={`status-dot${state.status === "connected" ? "" : " offline"}`}
+                        />
+                        {state.status === "connected"
+                          ? `연결 ${b!.participants!.filter((p) => p.connected).length}명`
+                          : state.status === "ended"
+                            ? "수업 종료"
+                            : "연결 기다리는 중"}
                       </span>
                       <IconButton
                         label="수업 설정"
@@ -241,7 +269,7 @@ export default function App() {
                       >
                         <SettingsIcon size={20} />
                       </IconButton>
-                      {state.status === "ended" ? (
+                      {state.status === "ended" && classroom.isHost ? (
                         <Button
                           onClick={() =>
                             void run(async () => {
@@ -259,24 +287,24 @@ export default function App() {
                       ) : (
                         <Button
                           className="end-class"
-                          onClick={() => setDialog("end")}
+                          onClick={() =>
+                            setDialog(classroom.isHost ? "end" : "disconnect")
+                          }
                         >
-                          수업 종료
+                          {classroom.isHost ? "수업 마치기" : "PC 연결 나가기"}
                         </Button>
                       )}
                     </>
                   ) : (
                     <>
-                      <span className="header-connected">
-                        <span
-                          className={`status-dot ${state.status === "connected" ? "" : "offline"}`}
-                        />
-                        {state.status === "connected"
-                          ? "선생님과 연결됨"
-                          : state.status === "ended"
+                      {state.status !== "connected" && (
+                        <span className="header-connected">
+                          <span className="status-dot offline" />
+                          {state.status === "ended"
                             ? "수업 종료"
                             : "연결 기다리는 중"}
-                      </span>
+                        </span>
+                      )}
                       <Button
                         variant="ghost"
                         onClick={() => go("join", "student")}
@@ -292,7 +320,7 @@ export default function App() {
                 <span className="header-description">
                   생각을 쓰고, 마음을 나누는 교실
                 </span>
-                {route.role === "teacher" && (
+                {route.role === "teacher" && page !== "join" && (
                   <Button
                     variant="ghost"
                     onClick={() => go(page === "history" ? "start" : "history")}
@@ -356,6 +384,15 @@ export default function App() {
                 <BookOpen size={17} />
                 게시판 <span>{b!.posts.length}</span>
               </button>
+              {classroom.isHost && (
+                <button
+                  className={page === "room" ? "active" : ""}
+                  onClick={() => go("room")}
+                >
+                  <Tablet size={17} />
+                  서버 관리
+                </button>
+              )}
               <span className="class-date">
                 {new Date(lesson!.createdAt).toLocaleDateString("ko-KR", {
                   month: "long",
@@ -387,86 +424,51 @@ export default function App() {
             </div>
           )}
           {page === "start" && (
-            <main className="start-page">
-              <div className="start-heading">
-                <div className="eyebrow">
-                  <Sprout size={16} />
-                  우리 반의 작은 글쓰기 시간
-                </div>
-                <h1>
-                  작은 생각이
-                  <br />
-                  <span>이야기로 자라는 곳.</span>
-                </h1>
-                <p>함께 쓰고, 읽고, 마음을 나누는 도토입니다.</p>
-              </div>
-              <div className="entry-options">
-                <button
-                  disabled={busy}
-                  className="entry-card teacher-entry"
-                  onClick={() => void start()}
-                >
-                  <span className="entry-icon">
-                    <LayoutGrid size={28} />
-                  </span>
-                  <span className="eyebrow">선생님</span>
-                  <h2>수업 시작</h2>
-                  <p>
-                    아이들의 글을 한눈에 살펴보고
-                    <br />
-                    따뜻한 한마디를 건네세요.
-                  </p>
-                  <span className="entry-action">
-                    {busy ? "수업을 여는 중…" : "우리 반 글쓰기 열기"}
-                    <ArrowRight />
-                  </span>
-                </button>
-                <button
-                  className="entry-card student-entry"
-                  onClick={() => go("join", "student")}
-                >
-                  <span className="entry-icon">
-                    <Pencil size={28} />
-                  </span>
-                  <span className="eyebrow">학생</span>
-                  <h2>코드로 입장</h2>
-                  <p>
-                    선생님에게 받은 코드로 들어와
-                    <br />
-                    나만의 이야기를 써 보세요.
-                  </p>
-                  <span className="entry-action">
-                    글쓰러 가기
-                    <ArrowRight />
-                  </span>
-                </button>
-              </div>
-              {validSession && (
-                <Button onClick={() => go("overview", "teacher")}>
-                  지금 수업으로 돌아가기
-                </Button>
-              )}
-              <button
-                className="past-class-link"
-                onClick={() => go("history", "teacher")}
-              >
-                <History size={17} />
-                지난 수업 이어 보기
-                <ArrowRight size={16} />
-              </button>
-              <p className="start-footnote">
-                회원가입 없이, 이름만 있으면 시작할 수 있어요.
-              </p>
-            </main>
+            <RoomStart
+              active={classroom.isHost && !!lesson && !lesson.ended}
+              onOpen={() =>
+                go(
+                  classroom.isHost && lesson && !lesson.ended
+                    ? "room"
+                    : "setup",
+                  "teacher",
+                )
+              }
+              onJoin={() => go("join", "student")}
+            />
+          )}
+          {page === "setup" && (
+            <RoomSetup
+              busy={busy}
+              onBack={() => go("start", "teacher")}
+              onStart={(title) => void start(undefined, title)}
+            />
+          )}
+          {page === "room" && teacher && classroom.isHost && (
+            <HostRoom
+              state={state}
+              device={hostDevice}
+              onInvite={() => setDialog("invite")}
+              onScreen={() => setDialog("screen")}
+              onEnd={() => setDialog("end")}
+              onCopy={(text) =>
+                void run(async () => {
+                  await navigator.clipboard.writeText(text);
+                }, "복사했어요.")
+              }
+            />
           )}
           {page === "join" && (
             <Join
               busy={busy}
+              onBack={() => go("start", "teacher")}
               current={session?.role === "student" ? session.name : undefined}
               onJoin={(code, name, fresh) =>
                 void run(async () => {
+                  recordUsageConsent("join");
                   await classroom.join(code, name, fresh);
-                  go("board", "student");
+                  const role = classroom.state.session!.role;
+                  go(role === "teacher" ? "overview" : "board", role);
                 })
               }
             />
@@ -483,11 +485,16 @@ export default function App() {
                   variant="primary"
                   onClick={() => void start()}
                   disabled={busy}
+                  aria-describedby="history-usage-consent"
                 >
                   새 수업 시작
                   <ArrowRight size={17} />
                 </Button>
               </div>
+              <UsageConsentNotice
+                id="history-usage-consent"
+                action="새 수업 시작 · 다시 수업 열기"
+              />
               <div className="history-list">
                 {records.map((r) => (
                   <article className="history-card" key={r.lesson.id}>
@@ -534,6 +541,7 @@ export default function App() {
                         variant="primary"
                         onClick={() => void start(r)}
                         disabled={busy}
+                        aria-describedby="history-usage-consent"
                       >
                         다시 수업 열기
                       </Button>
@@ -560,6 +568,8 @@ export default function App() {
           )}
           {page === "overview" && teacher && b && (
             <Teacher
+              selectedDocId={Number.isFinite(route.docId) ? route.docId : null}
+              onSelectDoc={(id) => go("overview", "teacher", id ?? undefined)}
               {...messageActions}
               docs={b.docs.filter((d) => d.studentId !== -1)}
               groups={b.groups}
@@ -577,7 +587,9 @@ export default function App() {
             <>
               {!teacher && (
                 <div className="student-board-help page-width">
-                  <span>주제를 고르고 +를 눌러 글을 시작해요.</span>
+                  <span>
+                    쓰던 글은 이어 쓰고, 새 글은 주제의 +를 눌러 시작해요.
+                  </span>
                   <HelpButton
                     participant={b.participants?.find(
                       (p) => p.id === session.id,
@@ -599,7 +611,7 @@ export default function App() {
                 feedback={b.feedback}
                 role={session.role}
                 studentName={session.name}
-                currentUserId={session.id}
+                currentUserId={teacher ? -1 : session.id}
                 sort={b.sort}
                 onSort={(sort) => void act({ type: "sort", sort })}
                 comments={b.comments}
@@ -630,7 +642,13 @@ export default function App() {
                   void act({ type: "reorder-group", id, targetId })
                 }
                 onMovePost={(docId, groupId, beforeId) =>
-                  void act({ type: "move", docId, groupId, beforeId })
+                  void act({
+                    type: "move",
+                    docId,
+                    groupId,
+                    beforeId,
+                    positioned: true,
+                  })
                 }
                 onUpdate={(id, patch) => classroom.updateDoc(id, patch)}
                 onFeedback={feedback}
@@ -671,7 +689,16 @@ export default function App() {
                       go("board");
                     }, "글을 게시했어요.")
                   }
-                  onBack={() => go("board")}
+                  onBack={() =>
+                    void run(async () => {
+                      await classroom.flush();
+                      if (classroom.state.saveState === "error")
+                        throw Error(
+                          "글을 저장하지 못했어요. 다시 시도해 주세요.",
+                        );
+                      go("board");
+                    })
+                  }
                   post={b.posts.find((p) => p.id === writingDoc.id)}
                   saveState={state.saveState}
                   savedAt={state.savedAt}
@@ -697,6 +724,14 @@ export default function App() {
                 </div>
               </main>
             ))}
+          {teacher && !lobby && b && (
+            <HelpNotifications
+              key={lesson.id}
+              participants={b.participants ?? []}
+              docs={b.docs}
+              onOpen={(docId) => go("overview", "teacher", docId)}
+            />
+          )}
           {dialog === "invite" && teacher && (
             <Modal title="우리 반으로 초대하기" onClose={() => setDialog(null)}>
               <div className="invite-content">
@@ -837,7 +872,7 @@ export default function App() {
               </form>
             </Modal>
           )}
-          {dialog === "end" && teacher && (
+          {dialog === "end" && teacher && classroom.isHost && (
             <Modal
               title="오늘 수업을 마칠까요?"
               onClose={() => setDialog(null)}
@@ -865,6 +900,91 @@ export default function App() {
                 </div>
               </div>
             </Modal>
+          )}
+          {dialog === "disconnect" && teacher && !classroom.isHost && (
+            <Modal title="이 PC에서 나갈까요?" onClose={() => setDialog(null)}>
+              <div className="modal-form">
+                <p>
+                  서버 태블릿의 수업은 계속 열려 있어요. 학생들은 그대로 글을 쓸
+                  수 있어요.
+                </p>
+                <Button
+                  variant="primary"
+                  disabled={busy}
+                  onClick={() =>
+                    void run(async () => {
+                      await classroom.leave();
+                      go("start", "teacher");
+                    })
+                  }
+                >
+                  PC 연결 나가기
+                </Button>
+              </div>
+            </Modal>
+          )}
+          {dialog === "screen" && classroom.isHost && (
+            <Modal title="화면 관리" onClose={() => setDialog(null)}>
+              <div className="settings-content">
+                <div className="setting-row">
+                  <strong>수업 중 화면 켜 두기</strong>
+                  <Toggle
+                    label="수업 중 화면 켜 두기"
+                    checked={hostDevice.keepScreen}
+                    onChange={() =>
+                      hostDevice.setKeepScreen(!hostDevice.keepScreen)
+                    }
+                  />
+                </div>
+                <p role="status">화면 유지: {hostDevice.wakeState}</p>
+                {hostDevice.keepScreen && hostDevice.wakeState !== "켜짐" && (
+                  <>
+                    <p className="meta">
+                      화면 유지가 허용되지 않으면 기기 설정에서 자동 잠금을 꺼
+                      주세요. 도토를 앞에 열어 두어야 수업을 이어 갈 수 있어요.
+                    </p>
+                    <Button onClick={hostDevice.retryWake}>
+                      화면 유지 다시 요청
+                    </Button>
+                  </>
+                )}
+                <Button
+                  onClick={() => {
+                    setDialog(null);
+                    hostDevice.setDimmed(true);
+                  }}
+                >
+                  어둡게 켜 두기
+                </Button>
+                <div className="setting-row">
+                  <strong>교사용 입장코드</strong>
+                  <Button
+                    disabled={busy || state.status !== "connected"}
+                    onClick={() =>
+                      void run(
+                        () => classroom.rotateTeacherCode(),
+                        "교사용 코드를 새로 만들었어요.",
+                      )
+                    }
+                  >
+                    코드 새로 만들기
+                  </Button>
+                </div>
+                <p className="meta">
+                  새로 들어오는 교사에게 새 코드를 알려 주세요. 이미 연결된 PC는
+                  유지돼요.
+                </p>
+              </div>
+            </Modal>
+          )}
+          {hostDevice.dimmed && classroom.isHost && lesson && !lesson.ended && (
+            <DimScreen
+              title={lesson.title}
+              count={b!.participants?.filter((p) => p.connected).length ?? 0}
+              controllerCount={state.controllerCount}
+              wakeState={hostDevice.wakeState}
+              onClose={() => hostDevice.setDimmed(false)}
+            />
           )}
           {dialog === "trash" && teacher && (
             <TrashPanel
@@ -896,25 +1016,36 @@ function Join({
   busy,
   current,
   onJoin,
+  onBack,
 }: {
   busy: boolean;
   current?: string;
   onJoin: (code: string, name: string, fresh: boolean) => void;
+  onBack: () => void;
 }) {
   const [code, setCode] = useState(
     new URLSearchParams(location.search).get("code") || "",
   );
   const [name, setName] = useState(current || "");
   const [fresh, setFresh] = useState(false);
+  const codeLength = code.replace(/^\*/, "").length;
+  const validCode = /^\*?(?:\d{6}|\d{8})$/.test(code);
   return (
-    <main className="join-page">
-      <div className="join-card">
+    <main className="th-join-page">
+      <Button variant="ghost" className="th-back" onClick={onBack}>
+        시작으로
+      </Button>
+      <div className="th-paper th-join-card">
         <span className="join-icon">
           <DoorOpen size={30} />
         </span>
         <div className="eyebrow">우리 반이 기다리고 있어요</div>
-        <h1>반가워요!</h1>
-        <p>입장 코드와 이름을 적어 주세요.</p>
+        <h1>방 입장하기</h1>
+        <p>
+          입장코드를 입력해 주세요.
+          <br />
+          코드에 맞는 화면으로 연결해 드려요.
+        </p>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -925,49 +1056,64 @@ function Join({
             입장 코드
             <input
               className="code-input"
-              inputMode="numeric"
-              pattern="[0-9]{6}"
-              maxLength={6}
+              inputMode="tel"
+              pattern={"\\*?[0-9]{6}([0-9]{2})?"}
+              maxLength={9}
+              placeholder="입장코드를 입력해 주세요"
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => {
+                const value = e.target.value.trimStart();
+                setCode(
+                  (value.startsWith("*") ? "*" : "") +
+                    value.replace(/\D/g, "").slice(0, 8),
+                );
+              }}
               required
               autoComplete="off"
             />
           </label>
-          <label className="field">
-            이름 또는 별명
-            <input
-              placeholder="어떤 이름으로 들어갈까요?"
-              value={name}
-              maxLength={16}
-              onChange={(e) => setName(e.target.value)}
-              required
-              autoComplete="off"
-            />
-          </label>
-          <label className="fresh-join">
-            <input
-              type="checkbox"
-              checked={fresh}
-              onChange={(e) => setFresh(e.target.checked)}
-            />
-            다른 이름으로 새로 입장
-          </label>
+          {codeLength === 6 && (
+            <>
+              <label className="field">
+                이름 또는 별명
+                <input
+                  placeholder="어떤 이름으로 들어갈까요?"
+                  value={name}
+                  maxLength={16}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  autoComplete="off"
+                />
+              </label>
+              <label className="fresh-join">
+                <input
+                  type="checkbox"
+                  checked={fresh}
+                  onChange={(e) => setFresh(e.target.checked)}
+                />
+                다른 이름으로 새로 입장
+              </label>
+            </>
+          )}
+          <UsageConsentNotice id="join-usage-consent" action="방 입장하기" />
           <Button
             variant="primary"
             type="submit"
             className="full-width"
-            disabled={busy || code.length !== 6 || !name.trim()}
+            aria-describedby="join-usage-consent"
+            disabled={busy || !validCode || (codeLength === 6 && !name.trim())}
           >
-            {busy ? "연결하는 중…" : "들어가기"}
+            {busy ? "연결하는 중…" : "방 입장하기"}
             <ArrowRight size={17} />
           </Button>
         </form>
-        <p className="join-footer">
-          같은 기기로 다시 들어오면 쓰던 글을 이어 써요.
-          <br />
-          기기를 다른 친구가 쓰면 새로 입장을 골라 주세요.
-        </p>
+        {codeLength === 6 && (
+          <p className="join-footer">
+            같은 기기로 다시 들어오면 쓰던 글을 이어 써요.
+            <br />
+            기기를 다른 친구가 쓰면 새로 입장을 골라 주세요.
+          </p>
+        )}
       </div>
     </main>
   );

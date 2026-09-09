@@ -59,17 +59,24 @@ test("진단: 후보가 offer보다 먼저 와도 연결하고 끊김을 서버�
     const errors: string[] = [];
     student.on("pageerror", (error) => errors.push(error.message));
     await teacher.goto("/teacher/start");
-    await teacher.locator(".teacher-entry").click();
+    await teacher.locator(".th-entry-host").click();
+    await teacher
+      .getByRole("button", { name: "방 열고 코드 받기", exact: true })
+      .click();
+    await teacher
+      .getByRole("button", { name: "학생용 QR", exact: true })
+      .click();
     const code = (await teacher.locator(".large-code").innerText()).trim();
     await student.goto("/student/join");
     await student.getByLabel("입장 코드", { exact: true }).fill(code);
     await student.getByLabel("이름 또는 별명").fill("로그비공개이름");
     await student
-      .getByRole("button", { name: "들어가기", exact: true })
+      .getByRole("button", { name: "방 입장하기", exact: true })
       .click();
-    await expect(
-      student.getByText("선생님과 연결됨", { exact: true }),
-    ).toBeVisible();
+    await expect(student.locator(".live-app")).toHaveAttribute(
+      "data-connection-status",
+      "connected",
+    );
     expect(await student.evaluate(() => (window as any).__pcs.length)).toBe(1);
     expect(
       await student.evaluate(() => (window as any).__iceAdded),
@@ -138,9 +145,10 @@ test("진단: 후보가 offer보다 먼저 와도 연결하고 끊김을 서버�
     await student
       .getByRole("button", { name: "다시 연결", exact: true })
       .click();
-    await expect(
-      student.getByText("선생님과 연결됨", { exact: true }),
-    ).toBeVisible();
+    await expect(student.locator(".live-app")).toHaveAttribute(
+      "data-connection-status",
+      "connected",
+    );
     expect(errors).toEqual([]);
   } finally {
     await teacherContext.close();
@@ -218,14 +226,20 @@ test("연결 제안이 도착하지 않으면 20초 대기 초과를 기록", as
     const teacher = await teacherContext.newPage();
     const student = await studentContext.newPage();
     await teacher.goto("/teacher/start");
-    await teacher.locator(".teacher-entry").click();
+    await teacher.locator(".th-entry-host").click();
+    await teacher
+      .getByRole("button", { name: "방 열고 코드 받기", exact: true })
+      .click();
+    await teacher
+      .getByRole("button", { name: "학생용 QR", exact: true })
+      .click();
     const code = (await teacher.locator(".large-code").innerText()).trim();
     await student.clock.install();
     await student.goto("/student/join");
     await student.getByLabel("입장 코드", { exact: true }).fill(code);
     await student.getByLabel("이름 또는 별명").fill("대기검사");
     await student
-      .getByRole("button", { name: "들어가기", exact: true })
+      .getByRole("button", { name: "방 입장하기", exact: true })
       .click();
     await expect(
       student.getByText("선생님과 연결하는 중이에요…", { exact: true }),

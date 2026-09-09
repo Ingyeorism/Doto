@@ -1,0 +1,73 @@
+{
+  "generatedAt": "2026-09-09T02:28:18.889Z",
+  "assumptions": {
+    "students": 30,
+    "remoteTeachers": 1,
+    "separateHostTablet": true,
+    "durationMinutes": 40,
+    "finalCharactersPerStudent": 1000,
+    "commentsPerStudent": 3,
+    "wireAllowance": 1.5,
+    "excludes": [
+      "initial joins and reconnects",
+      "feedback and other commands",
+      "signaling and diagnostics",
+      "page assets",
+      "application-level relay envelope",
+      "packet retransmission beyond allowance"
+    ],
+    "note": "Serialized payload measurement with synthetic data; 50% transport allowance is assumed, not measured. No CPU/RAM benchmark."
+  },
+  "typing": {
+    "insertOnly": {
+      "messagesPerStudent": 1000,
+      "payloadBytesPerStudent": 78868,
+      "meanPacketBytes": 78.868,
+      "fullYjsStateBytes": 2524
+    },
+    "simplifiedComposition": {
+      "messagesPerStudent": 2478,
+      "payloadBytesPerStudent": 213146,
+      "meanPacketBytes": 86.01533494753834,
+      "fullYjsStateBytes": 22362
+    }
+  },
+  "scenarios": [
+    {
+      "serializedImageBytes": 0,
+      "boardActions": 120,
+      "teacherSnapshotTotalBytes": 18847041,
+      "allSnapshotTotalBytes": 563218330,
+      "finalTeacherSnapshotBytes": 184578,
+      "finalStudentSnapshotBytes": 173719,
+      "teacherRelayUploadMB": 37.8621315,
+      "allRelayUploadMB": 864.010635,
+      "teacherAverageMbps40min": 0.12620710499999999,
+      "allAverageMbps40min": 2.88003545
+    },
+    {
+      "serializedImageBytes": 500000,
+      "boardActions": 120,
+      "teacherSnapshotTotalBytes": 79272849,
+      "allSnapshotTotalBytes": 2496788786,
+      "finalTeacherSnapshotBytes": 688057,
+      "finalStudentSnapshotBytes": 677281,
+      "teacherRelayUploadMB": 128.5008435,
+      "allRelayUploadMB": 3764.366319,
+      "teacherAverageMbps40min": 0.428336145,
+      "allAverageMbps40min": 12.547887730000001
+    }
+  ],
+  "assets": [
+    {
+      "name": "index-BBH9g2Jv.css",
+      "bytes": 96137,
+      "gzipBytes": 20258
+    },
+    {
+      "name": "index-DQm0vVXF.js",
+      "bytes": 975309,
+      "gzipBytes": 299897
+    }
+  ]
+}

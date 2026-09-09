@@ -5,6 +5,9 @@ import { resolve } from "node:path";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const url = "http://127.0.0.1:5173/";
+const previewUrl = process.argv.includes("--tablet")
+  ? `${url}teacher/start?preview=tablet`
+  : `${url}teacher/overview?preview=1`;
 
 async function isReady() {
   try {
@@ -57,7 +60,7 @@ if (!(await isReady())) {
       "-WindowStyle",
       "Hidden",
       "-Command",
-      "Start-Process 'http://127.0.0.1:5173/teacher/overview?preview=1'",
+      `Start-Process '${previewUrl}'`,
     ],
     { detached: true, windowsHide: true, stdio: "ignore" },
   );

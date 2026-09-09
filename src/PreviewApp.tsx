@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -15,10 +15,12 @@ import {
   QrCode,
   Settings,
   Sprout,
+  Tablet,
   Users,
   X,
 } from "lucide-react";
 import { Community } from "./Community";
+import { moveBoardCard } from "./board-order";
 import { Teacher } from "./Teacher";
 import { createUuid } from "./uuid";
 import { WritingPage } from "./Student";
@@ -81,17 +83,45 @@ const readRoute = (): Route => {
             : "teacher",
   };
 };
-const routePath = ({ role, screen, docId }: Route) =>
-  `/${role}/${screen === "teacher" ? "overview" : screen === "student" ? "board" : screen === "write" ? `write/${docId}` : screen}${window.location.search}`;
+const routePath = ({ role, screen, docId }: Route, host = false) =>
+  `/${host && role === "teacher" ? "host" : role}/${screen === "teacher" ? "overview" : screen === "student" ? "board" : screen === "write" ? `write/${docId}` : screen}${window.location.search}`;
 type Dialog = "invite" | "settings" | "prompt" | "end" | "published" | null;
+type PreviewPreferences = {
+  prompt: string;
+  classTitle: string;
+  settings: {
+    locked: boolean;
+    observe: boolean;
+    feedback: boolean;
+    editing: boolean;
+    comments: boolean;
+  };
+};
+const TABLET_PREFERENCES_KEY = "doto.tablet-classroom.ui.v1";
 
-export default function App() {
+export interface TabletPreviewSession {
+  host: boolean;
+  title: string;
+  studentName: string;
+  studentId: number;
+  studentCode: string;
+  notice: ReactNode;
+  onHome?: () => void;
+  onInvite: () => void;
+  onSettings: () => void;
+  onDisconnect: () => void;
+  onHostManage: () => void;
+}
+
+export default function App({
+  tabletSession,
+}: { tabletSession?: TabletPreviewSession } = {}) {
   const [route, setRoute] = useState<Route>(readRoute);
   const { screen, role } = route;
   const [simulation] = useState(
     () => new URLSearchParams(window.location.search).get("simulation") ?? "",
   );
-  const storageKey = `doto.board.v2:${simulation || "main"}`;
+  const storageKey = `doto.board.v2:${tabletSession ? "tablet-preview" : simulation || "main"}`;
   const [initialBoard] = useState(() =>
     loadBoard(
       storageKey,
@@ -125,9 +155,25 @@ export default function App() {
   const [comments, setComments] = useState(initialBoard.comments);
   const [boardTitle, setBoardTitle] = useState(initialBoard.title);
   const [trash, setTrash] = useState(initialBoard.trash);
-  const [participants, setParticipants] = useState<Participant[]>(
-    () => initialBoard.participants ?? participantsFromDocs(initialBoard.docs),
-  );
+  const [participants, setParticipants] = useState<Participant[]>(() => {
+    const initial =
+      initialBoard.participants ?? participantsFromDocs(initialBoard.docs);
+    if (
+      !tabletSession ||
+      role !== "student" ||
+      initial.some((p) => p.id === tabletSession.studentId)
+    )
+      return initial;
+    return [
+      ...initial,
+      {
+        id: tabletSession.studentId,
+        name: tabletSession.studentName,
+        joinedAt: Date.now(),
+        connected: true,
+      },
+    ];
+  });
   const [trashOpen, setTrashOpen] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const [savedDocs, setSavedDocs] = useState(initialBoard.docs);
@@ -217,22 +263,52 @@ export default function App() {
     return () => window.clearInterval(timer);
   }, []);
   const [dialog, setDialog] = useState<Dialog>(null);
+  const [savedPreferences] = useState<Partial<PreviewPreferences>>(() => {
+    if (!tabletSession) return {};
+    try {
+      return (
+        JSON.parse(localStorage.getItem(TABLET_PREFERENCES_KEY) ?? "null") ?? {}
+      );
+    } catch {
+      return {};
+    }
+  });
   const [prompt, setPrompt] = useState(
-    simulationLessons[simulation as SimulationLesson]?.prompt ??
+    savedPreferences.prompt ??
+      simulationLessons[simulation as SimulationLesson]?.prompt ??
       "마음에 오래 남은 하루를 써 보세요.",
   );
   const [promptDraft, setPromptDraft] = useState(prompt);
-  const [classTitle, setClassTitle] = useState("우리 반 글쓰기");
+  const [classTitle, setClassTitle] = useState(
+    tabletSession?.title ?? savedPreferences.classTitle ?? "우리 반 글쓰기",
+  );
   const [toast, setToast] = useState("");
-  const [settings, setSettings] = useState({
-    locked: false,
-    observe: false,
-    feedback: true,
-    editing: true,
-    comments: true,
-  });
-  const [studentName, setStudentName] = useState("김하늘");
-  const [activeStudentId, setActiveStudentId] = useState(0);
+  const [settings, setSettings] = useState(
+    savedPreferences.settings ?? {
+      locked: false,
+      observe: false,
+      feedback: true,
+      editing: true,
+      comments: true,
+    },
+  );
+  useEffect(() => {
+    if (!tabletSession) return;
+    try {
+      localStorage.setItem(
+        TABLET_PREFERENCES_KEY,
+        JSON.stringify({ prompt, classTitle, settings }),
+      );
+    } catch {
+      setStorageError(true);
+    }
+  }, [prompt, classTitle, settings, tabletSession]);
+  const [studentName, setStudentName] = useState(
+    tabletSession?.studentName ?? "김하늘",
+  );
+  const [activeStudentId, setActiveStudentId] = useState(
+    tabletSession?.studentId ?? 0,
+  );
   const currentUserId = role === "teacher" ? -1 : activeStudentId;
   const activeParticipant = participants.find((p) => p.id === activeStudentId);
   const writingDoc = docs.find(
@@ -240,7 +316,7 @@ export default function App() {
   );
   const student = writingDoc ?? docs[0];
   const go = (next: Route) => {
-    window.history.pushState(null, "", routePath(next));
+    window.history.pushState(null, "", routePath(next, tabletSession?.host));
     setRoute(next);
     setDialog(null);
     window.scrollTo(0, 0);
@@ -258,13 +334,21 @@ export default function App() {
     });
   };
   useEffect(() => {
-    window.history.replaceState(null, "", routePath(readRoute()));
+    window.history.replaceState(
+      null,
+      "",
+      routePath(readRoute(), tabletSession?.host),
+    );
     const change = () => {
       const next = readRoute();
       setRoute(next);
       setDialog(null);
       if (window.location.hash)
-        window.history.replaceState(null, "", routePath(next));
+        window.history.replaceState(
+          null,
+          "",
+          routePath(next, tabletSession?.host),
+        );
       window.scrollTo(0, 0);
     };
     window.addEventListener("popstate", change);
@@ -277,7 +361,11 @@ export default function App() {
   useEffect(() => {
     if (screen === "write" && !writingDoc) {
       const next: Route = { role, screen: "board" };
-      window.history.replaceState(null, "", routePath(next));
+      window.history.replaceState(
+        null,
+        "",
+        routePath(next, tabletSession?.host),
+      );
       setRoute(next);
     }
   }, [screen, role, writingDoc]);
@@ -471,27 +559,12 @@ export default function App() {
   };
   const movePost = (id: number, groupId: string, beforeId?: number) => {
     if (role !== "teacher" || !groups.some((g) => g.id === groupId)) return;
-    const source = posts.find((p) => p.id === id);
-    if (
-      !source ||
-      beforeId === id ||
-      (source.groupId === groupId && sort !== "manual")
-    )
-      return;
-    const order = posts
-      .filter((p) => p.id !== id && p.groupId === groupId)
-      .sort((a, b) => a.manualOrder - b.manualOrder)
-      .map((p) => p.id);
-    const index = beforeId === undefined ? -1 : order.indexOf(beforeId);
-    order.splice(index < 0 ? order.length : index, 0, id);
-    const move = (items: StudentDoc[]) =>
-      items.map((d) =>
-        order.includes(d.id)
-          ? { ...d, groupId, manualOrder: order.indexOf(d.id) }
-          : d,
-      );
-    setPosts(move);
-    setDocs(move);
+    const board = { docs, posts, sort };
+    const next = moveBoardCard(board, id, groupId, beforeId);
+    if (next === board) return;
+    setPosts(next.posts);
+    setDocs(next.docs);
+    setSort(next.sort);
     setToast(
       `‘${groups.find((g) => g.id === groupId)?.title}’에 글을 놓았어요.`,
     );
@@ -561,14 +634,16 @@ export default function App() {
       )}
       <header className="app-header">
         <Logo
-          onClick={() =>
-            navigate(
-              role === "teacher"
-                ? "start"
-                : screen === "join"
-                  ? "join"
-                  : "board",
-            )
+          onClick={
+            tabletSession?.onHome ??
+            (() =>
+              navigate(
+                role === "teacher"
+                  ? "start"
+                  : screen === "join"
+                    ? "join"
+                    : "board",
+              ))
           }
         />
         {!isLobby && (
@@ -585,10 +660,12 @@ export default function App() {
                 <>
                   <Button
                     className="invite-button"
-                    onClick={() => setDialog("invite")}
+                    onClick={
+                      tabletSession?.onInvite ?? (() => setDialog("invite"))
+                    }
                   >
                     <span>입장 코드</span>
-                    <strong>482 716</strong>
+                    <strong>{tabletSession?.studentCode ?? "482 716"}</strong>
                     <QrCode size={19} />
                   </Button>
                   <span className="header-connected">
@@ -597,15 +674,23 @@ export default function App() {
                   </span>
                   <IconButton
                     label="수업 설정"
-                    onClick={() => setDialog("settings")}
+                    onClick={
+                      tabletSession?.onSettings ?? (() => setDialog("settings"))
+                    }
                   >
                     <Settings size={20} />
                   </IconButton>
                   <Button
                     className="end-class"
-                    onClick={() => setDialog("end")}
+                    onClick={
+                      tabletSession?.onDisconnect ?? (() => setDialog("end"))
+                    }
                   >
-                    수업 종료
+                    {tabletSession?.host
+                      ? "수업 마치기"
+                      : tabletSession
+                        ? "PC 연결 나가기"
+                        : "수업 종료"}
                   </Button>
                 </>
               ) : (
@@ -638,6 +723,7 @@ export default function App() {
           </div>
         )}
       </header>
+      {role === "teacher" && tabletSession?.notice}
       {!isLobby && role === "teacher" && (
         <nav className="product-tabs" aria-label="수업 메뉴">
           {[
@@ -655,6 +741,12 @@ export default function App() {
               {tab.id === "board" && <span>{posts.length}</span>}
             </button>
           ))}
+          {tabletSession?.host && (
+            <button onClick={tabletSession.onHostManage}>
+              <Tablet size={17} />
+              서버 관리
+            </button>
+          )}
           <span className="class-date">9월 5일 토요일</span>
         </nav>
       )}
@@ -775,7 +867,7 @@ export default function App() {
             onRemove={(id) => {
               setPosts((p) => p.filter((d) => d.id !== id));
               updateDoc(id, { published: false });
-              setToast("시안에서 게시글을 내렸어요.");
+              setToast("게시글을 내렸어요.");
             }}
           />
         </>
@@ -856,7 +948,7 @@ export default function App() {
           }
         />
       )}
-      {role === "teacher" && (
+      {role === "teacher" && !tabletSession && (
         <div className="preview-dock">
           <span className="preview-label">
             <Monitor size={15} />

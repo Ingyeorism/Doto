@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { randomBytes, randomInt, randomUUID } from "node:crypto";
 import { WebSocketServer, WebSocket } from "ws";
 import { createDiagnostics } from "./diagnostics.mjs";
+import { closeRelay, renewRelay, forwardRelay } from "./relay.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const diagnostics = createDiagnostics(root);
@@ -14,6 +15,28 @@ const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || "0.0.0.0";
 const rooms = new Map();
 const token = () => randomBytes(32).toString("hex");
+const roomByCode = (code) =>
+  [...rooms.values()].find((r) => r.code === code || r.teacherCode === code);
+const newTeacherCode = () => {
+  let code;
+  do {
+    code = String(randomInt(10000000, 100000000));
+  } while (roomByCode(code));
+  return code;
+};
+const roomPeers = (room) => [
+  ...room.students.values(),
+  ...room.controllers.values(),
+];
+const announcePeer = (room, p) =>
+  send(room.teacher, {
+    type: "peer",
+    id: p.id,
+    name: p.name,
+    token: p.token,
+    role: p.id < -1 ? "teacher" : "student",
+    relayId: p.relayId,
+  });
 const rejectionReasons = new Map([
   ["입장 코드를 확인해 주세요. 수업이 끝났을 수도 있어요.", "invalid-code"],
   ["이미 수업에 연결되어 있어요.", "already-joined"],
@@ -119,7 +142,7 @@ function endRoom(room, reason = "ended") {
   log("room.ended", { roomId: room.id, lessonId: room.lessonId, reason });
   clearTimeout(room.expiry);
   rooms.delete(room.id);
-  for (const p of room.students.values()) send(p.ws, { type: "ended" });
+  for (const p of roomPeers(room)) send(p.ws, { type: "ended" });
 }
 wss.on("connection", (ws) => {
   ws.connectionId = randomUUID();
@@ -134,6 +157,7 @@ wss.on("connection", (ws) => {
   });
   log("socket.open", context());
   ws.alive = true;
+  ws.admissions = [];
   ws.on("pong", () => (ws.alive = true));
   ws.on("error", (error) =>
     log("socket.error", { ...context(), errorName: error.name }),
@@ -143,19 +167,26 @@ wss.on("connection", (ws) => {
     try {
       m = JSON.parse(raw.toString());
       if (!m || typeof m !== "object") throw Error("잘못된 요청이에요.");
+      if (["lookup", "join", "create"].includes(m.type)) {
+        ws.admissions = ws.admissions.filter((at) => Date.now() - at < 60000);
+        if (ws.admissions.length >= 40)
+          throw Error("요청이 너무 많아요. 잠시 후 다시 시도해 주세요.");
+        ws.admissions.push(Date.now());
+      }
       if (typeof m.clientId === "string") ws.clientId = m.clientId;
       if (typeof m.attemptId === "string") ws.attemptId = m.attemptId;
-      log("signal.receive", {
-        ...context(),
-        messageType: m.type,
-        requestId: m.requestId,
-        descriptionType: m.description?.type,
-        hasCandidate: !!m.candidate,
-      });
+      if (m.type !== "relay")
+        log("signal.receive", {
+          ...context(),
+          messageType: m.type,
+          requestId: m.requestId,
+          descriptionType: m.description?.type,
+          hasCandidate: !!m.candidate,
+        });
       const reply = (value) =>
         send(ws, { type: "result", requestId: m.requestId, ...value });
       if (m.type === "lookup") {
-        const room = [...rooms.values()].find((r) => r.code === m.code);
+        const room = roomByCode(m.code);
         if (!room)
           throw Error("입장 코드를 확인해 주세요. 수업이 끝났을 수도 있어요.");
         log("room.lookup", {
@@ -164,7 +195,10 @@ wss.on("connection", (ws) => {
           lessonId: room.lessonId,
           teacherOnline: room.teacher?.readyState === WebSocket.OPEN,
         });
-        reply({ lessonId: room.lessonId });
+        reply({
+          lessonId: room.lessonId,
+          role: m.code === room.teacherCode ? "teacher" : "student",
+        });
       } else if (m.type === "create") {
         if (ws.room) throw Error("이미 수업에 연결되어 있어요.");
         if (typeof m.lessonId !== "string" || m.lessonId.length > 100)
@@ -181,8 +215,10 @@ wss.on("connection", (ws) => {
             id: randomUUID(),
             lessonId: m.lessonId,
             code,
+            teacherCode: newTeacherCode(),
             teacherToken: token(),
             students: new Map(),
+            controllers: new Map(),
             locked: !!m.locked,
           };
           // Only reconnect credentials go through signaling. No lesson content.
@@ -192,6 +228,7 @@ wss.on("connection", (ws) => {
           )) {
             if (
               Number.isSafeInteger(p.id) &&
+              p.id > 0 &&
               typeof p.token === "string" &&
               p.token.length >= 32 &&
               typeof p.name === "string"
@@ -200,6 +237,22 @@ wss.on("connection", (ws) => {
                 id: p.id,
                 token: p.token,
                 name: p.name.slice(0, 40),
+              });
+          }
+          for (const p of (Array.isArray(m.controllers)
+            ? m.controllers
+            : []
+          ).slice(0, 20)) {
+            if (
+              Number.isSafeInteger(p.id) &&
+              p.id < -1 &&
+              typeof p.token === "string" &&
+              p.token.length >= 32
+            )
+              room.controllers.set(p.id, {
+                id: p.id,
+                token: p.token,
+                name: "선생님",
               });
           }
           rooms.set(room.id, room);
@@ -218,42 +271,67 @@ wss.on("connection", (ws) => {
           roomId: room.id,
           lessonId: room.lessonId,
           code: room.code,
+          teacherCode: room.teacherCode,
           token: room.teacherToken,
         });
-        for (const p of room.students.values())
+        for (const p of roomPeers(room))
           if (p.ws?.readyState === WebSocket.OPEN) {
-            send(ws, { type: "peer", id: p.id, name: p.name, token: p.token });
+            renewRelay(room, p);
+            announcePeer(room, p);
             send(p.ws, { type: "teacher-ready" });
           }
       } else if (m.type === "join") {
         if (ws.room) throw Error("이미 수업에 연결되어 있어요.");
-        const room = [...rooms.values()].find((r) => r.code === m.code);
+        const room =
+          m.token && m.lessonId
+            ? [...rooms.values()].find((r) => r.lessonId === m.lessonId)
+            : roomByCode(m.code);
         if (!room)
           throw Error("입장 코드를 확인해 주세요. 수업이 끝났을 수도 있어요.");
-        let p = [...room.students.values()].find((p) => p.token === m.token);
+        let p = roomPeers(room).find((p) => p.token === m.token);
         if (m.token && !p)
           throw Error(
             "이 수업의 재입장 정보를 확인하지 못했어요. 다른 이름으로 새로 입장을 선택해 주세요.",
           );
         if (!p) {
-          if (room.locked) throw Error("선생님이 새 입장을 잠갔어요.");
-          if (typeof m.name !== "string" || !m.name.trim())
-            throw Error("이름을 적어 주세요.");
-          const name = m.name.trim().slice(0, 16);
-          const count = [...room.students.values()].filter(
-            (p) =>
-              p.baseName === name ||
-              p.name === name ||
-              p.name.startsWith(name + " ("),
-          ).length;
-          p = {
-            id: randomInt(1, 2 ** 48),
-            name: count ? `${name} (${count + 1})` : name,
-            baseName: name,
-            token: token(),
-          };
-          room.students.set(p.id, p);
+          const controller = m.code === room.teacherCode;
+          if (room.locked && !controller)
+            throw Error("선생님이 새 입장을 잠갔어요.");
+          if (controller) {
+            if (room.controllers.size >= 20)
+              throw Error("연결 가능한 교사 기기 수를 넘었어요.");
+            let id;
+            do {
+              id = -randomInt(2, 2 ** 48);
+            } while (room.controllers.has(id));
+            p = { id, name: "선생님", token: token() };
+            room.controllers.set(p.id, p);
+          } else {
+            if (typeof m.name !== "string" || !m.name.trim())
+              throw Error("이름을 적어 주세요.");
+            const name = m.name.trim().slice(0, 16);
+            const count = [...room.students.values()].filter(
+              (p) =>
+                p.baseName === name ||
+                p.name === name ||
+                p.name.startsWith(name + " ("),
+            ).length;
+            let id;
+            do {
+              id = randomInt(1, 2 ** 48);
+            } while (room.students.has(id));
+            p = {
+              id,
+              name: count ? `${name} (${count + 1})` : name,
+              baseName: name,
+              token: token(),
+            };
+            room.students.set(p.id, p);
+          }
         }
+        closeRelay(room, p);
+        p.relay = m.relay === true;
+        renewRelay(room, p);
         if (p.ws && p.ws !== ws) {
           send(p.ws, { type: "replaced" });
           p.ws.close();
@@ -274,20 +352,19 @@ wss.on("connection", (ws) => {
           id: p.id,
           name: p.name,
           token: p.token,
+          role: p.id < -1 ? "teacher" : "student",
+          relay: p.relay,
           teacherOnline: room.teacher?.readyState === WebSocket.OPEN,
         });
-        send(room.teacher, {
-          type: "peer",
-          id: p.id,
-          name: p.name,
-          token: p.token,
-        });
+        announcePeer(room, p);
       } else {
         const room = ws.room;
         if (!room || rooms.get(room.id) !== room)
           throw Error("수업에 다시 연결해 주세요.");
-        if (m.type === "signal") {
-          // Explicit allowlist: the central socket never forwards document messages.
+        if (m.type === "relay") {
+          forwardRelay(room, ws, m);
+        } else if (m.type === "signal") {
+          // The direct-connection signaling path still accepts only SDP and ICE.
           const data = m.description
             ? {
                 description: {
@@ -328,7 +405,9 @@ wss.on("connection", (ws) => {
           const authorized =
             ws.role === "teacher" ? room.teacher === ws : ws.student?.ws === ws;
           const target =
-            ws.role === "teacher" ? room.students.get(m.to)?.ws : room.teacher;
+            ws.role === "teacher"
+              ? (room.students.get(m.to) || room.controllers.get(m.to))?.ws
+              : room.teacher;
           log(
             authorized && target?.readyState === WebSocket.OPEN
               ? "signal.forward"
@@ -341,7 +420,7 @@ wss.on("connection", (ws) => {
             },
           );
           if (ws.role === "teacher" && room.teacher === ws)
-            send(room.students.get(m.to)?.ws, {
+            send((room.students.get(m.to) || room.controllers.get(m.to))?.ws, {
               type: "signal",
               from: "teacher",
               ...data,
@@ -353,12 +432,12 @@ wss.on("connection", (ws) => {
               ...data,
             });
         } else if (m.type === "retry" && ws.role === "student") {
-          send(room.teacher, {
-            type: "peer",
-            id: ws.student.id,
-            name: ws.student.name,
-            token: ws.student.token,
-          });
+          if (ws.student?.ws !== ws) throw Error("허용되지 않은 요청이에요.");
+          renewRelay(room, ws.student);
+          announcePeer(room, ws.student);
+        } else if (m.type === "rotate-teacher-code" && room.teacher === ws) {
+          room.teacherCode = newTeacherCode();
+          reply({ teacherCode: room.teacherCode });
         } else if (
           m.type === "lock" &&
           ws.role === "teacher" &&
@@ -398,10 +477,12 @@ wss.on("connection", (ws) => {
     if (!room || rooms.get(room.id) !== room) return;
     if (ws.role === "teacher" && room.teacher === ws) {
       room.teacher = null;
+      for (const p of roomPeers(room)) closeRelay(room, p);
       log("room.teacher_offline", context());
       room.expiry = setTimeout(() => endRoom(room, "timeout"), 5 * 60 * 1000);
     }
     if (ws.role === "student" && ws.student.ws === ws) {
+      closeRelay(room, ws.student);
       ws.student.ws = null;
     }
   });

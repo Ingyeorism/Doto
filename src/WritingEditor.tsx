@@ -32,6 +32,7 @@ import {
   type Feedback,
   type FeedbackSelection,
   type StudentDoc,
+  DOCUMENT_TITLE_MAX_LENGTH,
   toHtml,
 } from "./data";
 import { FeedbackExtension, feedbackKey } from "./feedback-extension";
@@ -66,6 +67,8 @@ export function WritingEditor({
   const docRef = useRef(doc);
   docRef.current = doc;
   const [more, setMore] = useState(false);
+  const titleComposing = useRef(false);
+  const [composingTitle, setComposingTitle] = useState<string | null>(null);
   const [colorOpen, setColorOpen] = useState(false);
   const [fontSize, setFontSize] = useState("18");
   const [fontFamily, setFontFamily] = useState("sans-serif");
@@ -102,11 +105,11 @@ export function WritingEditor({
         if (compact || !view.editable) return false;
         const rect = view.coordsAtPos(view.state.selection.head);
         const viewport = window.visualViewport;
-        const dock = document
-          .querySelector(".writing-action-dock")
-          ?.getBoundingClientRect();
         const top = (viewport?.offsetTop ?? 0) + 90;
-        const bottom = (dock?.top ?? window.innerHeight) - 24;
+        const bottom =
+          (viewport
+            ? viewport.offsetTop + viewport.height
+            : window.innerHeight) - 24;
         if (rect.bottom > bottom) window.scrollBy(0, rect.bottom - bottom);
         else if (rect.top < top) window.scrollBy(0, rect.top - top);
         return true;
@@ -565,13 +568,43 @@ export function WritingEditor({
             {doc.title || "제목 없는 글"}
           </h2>
         ) : (
-          <input
-            className="document-title-input"
-            id={`document-title-${doc.id}`}
-            value={doc.title}
-            placeholder="제목을 적어 주세요"
-            onChange={(e) => onUpdate({ title: e.target.value })}
-          />
+          <>
+            <input
+              className="document-title-input"
+              id={`document-title-${doc.id}`}
+              value={composingTitle ?? doc.title}
+              placeholder="제목을 적어 주세요"
+              maxLength={DOCUMENT_TITLE_MAX_LENGTH}
+              aria-describedby={`document-title-limit-${doc.id}`}
+              aria-invalid={doc.title.length > DOCUMENT_TITLE_MAX_LENGTH}
+              onCompositionStart={(e) => {
+                titleComposing.current = true;
+                setComposingTitle(e.currentTarget.value);
+              }}
+              onCompositionEnd={(e) => {
+                titleComposing.current = false;
+                setComposingTitle(null);
+                onUpdate({
+                  title: e.currentTarget.value.slice(0, DOCUMENT_TITLE_MAX_LENGTH),
+                });
+              }}
+              onChange={(e) => {
+                if (titleComposing.current) setComposingTitle(e.target.value);
+                else onUpdate({
+                  title: e.target.value.slice(0, DOCUMENT_TITLE_MAX_LENGTH),
+                });
+              }}
+            />
+            <div
+              className={`document-title-limit${doc.title.length > DOCUMENT_TITLE_MAX_LENGTH ? " field-error" : ""}`}
+              id={`document-title-limit-${doc.id}`}
+            >
+              {doc.title.length > DOCUMENT_TITLE_MAX_LENGTH
+                ? `제목을 ${DOCUMENT_TITLE_MAX_LENGTH}자 이내로 줄여 주세요. `
+                : ""}
+              {(composingTitle ?? doc.title).length}/{DOCUMENT_TITLE_MAX_LENGTH}자
+            </div>
+          </>
         )}
         <div className="paper-rule" />
         <FeedbackSurface

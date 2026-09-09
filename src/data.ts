@@ -1,3 +1,5 @@
+export const DOCUMENT_TITLE_MAX_LENGTH = 50;
+
 export interface StudentDoc {
   id: number;
   studentId: number;

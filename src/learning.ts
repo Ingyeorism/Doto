@@ -71,7 +71,7 @@ export function cleanGroup(group: BoardGroup): BoardGroup {
     resources: (group.resources ?? [])
       .map((r) => ({
         ...r,
-        title: r.title.trim() || "선생님 자료",
+        title: r.title.trim() || "추가자료",
         url: httpUrl(r.url),
         caption: r.caption?.trim(),
       }))

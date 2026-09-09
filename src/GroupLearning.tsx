@@ -51,6 +51,8 @@ export function GroupLearningFields({
   onChange: (group: BoardGroup) => void;
   onBusyChange: (busy: boolean) => void;
 }) {
+  const [questionExample, setQuestionExample] =
+    useState<keyof typeof questionSets>("review");
   const [imageError, setImageError] = useState("");
   const [imageBusy, setImageBusy] = useState(false);
   const latestGroup = useRef(group);
@@ -81,31 +83,29 @@ export function GroupLearningFields({
       </p>
       <div className="field">
         <strong>생각을 여는 질문</strong>
-        <div className="row gap-8 template-choices">
+        <div
+          className="row gap-8 template-choices"
+          role="group"
+          aria-label="질문 예시 선택"
+        >
           <Button
-            onClick={() =>
-              onChange({ ...group, questions: questionSets.review })
-            }
+            aria-pressed={questionExample === "review"}
+            onClick={() => setQuestionExample("review")}
           >
-            서평 질문 넣기
+            서평 예시
           </Button>
           <Button
-            onClick={() =>
-              onChange({
-                ...group,
-                questions: questionSets.heritage,
-                collectSources: true,
-              })
-            }
+            aria-pressed={questionExample === "heritage"}
+            onClick={() => setQuestionExample("heritage")}
           >
-            조사 질문 넣기
+            조사 예시
           </Button>
         </div>
         {[0, 1, 2].map((index) => (
           <input
             key={index}
             aria-label={`생각 질문 ${index + 1}`}
-            placeholder={`질문 ${index + 1} · 비워 두어도 돼요`}
+            placeholder={`예: ${questionSets[questionExample][index]}`}
             maxLength={140}
             value={group.questions?.[index] ?? ""}
             onChange={(e) => {
@@ -134,7 +134,7 @@ export function GroupLearningFields({
         </span>
       </label>
       <div className="resource-settings-title">
-        <strong>선생님 자료</strong>
+        <strong>추가자료</strong>
         <span className="meta">최대 2개 · 링크나 그림</span>
       </div>
       {resources.map((r, index) => (
@@ -160,7 +160,7 @@ export function GroupLearningFields({
             <input
               value={r.title}
               maxLength={70}
-              placeholder="예: 수원 화성 살펴보기 · 생략하면 ‘선생님 자료’"
+              placeholder="예: 수원 화성 살펴보기 · 생략하면 ‘추가자료’"
               onChange={(e) => updateResource(r.id, { title: e.target.value })}
             />
           </label>
@@ -297,13 +297,13 @@ export function LessonMaterials({ group }: { group: BoardGroup }) {
     <div className="lesson-materials">
       <span className="materials-label">
         <BookOpen size={15} />
-        선생님 자료
+        추가자료
       </span>
       {resources.map((r) => (
         <div className="lesson-resource" key={r.id}>
           {httpUrl(r.url) && (
             <a href={httpUrl(r.url)} target="_blank" rel="noopener noreferrer">
-              {r.title || "선생님 자료"}
+              {r.title || "추가자료"}
               <ExternalLink size={14} />
               <span className="sr-only">새 탭에서 열기</span>
             </a>
@@ -317,7 +317,7 @@ export function LessonMaterials({ group }: { group: BoardGroup }) {
                 aria-expanded={openImage === r.id}
               >
                 <img src={r.image} alt="" />
-                {r.title || "선생님 자료"} · 그림{" "}
+                {r.title || "추가자료"} · 그림{" "}
                 {openImage === r.id ? "접기" : "보기"}
               </button>
               {openImage === r.id && (

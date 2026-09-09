@@ -21,8 +21,10 @@ import type {
   PostSort,
 } from "./data";
 import { filledSources, cleanGroup } from "./learning";
+import { DOCUMENT_TITLE_MAX_LENGTH } from "./data";
 import { safeHtml } from "./safe-html";
 import { createUuid } from "./uuid";
+import { moveBoardCard } from "./board-order";
 import { diagnostic, diagnosticClientId, errorFields } from "./diagnostics";
 
 export type Role = "teacher" | "student";
@@ -47,6 +49,7 @@ export interface Lesson {
   settings: Settings;
   board: BoardState;
   members: Member[];
+  controllers?: Member[];
 }
 export interface Session {
   role: Role;
@@ -55,6 +58,9 @@ export interface Session {
   token: string;
   id: number;
   name: string;
+  host?: boolean;
+  teacherCode?: string;
+  relay?: boolean;
 }
 type AnchorRebase = {
   feedbackId: number;
@@ -77,6 +83,7 @@ export interface ClassroomState {
   error: string;
   saveState: "saved" | "saving" | "error";
   savedAt: number | null;
+  controllerCount: number;
   presence: {
     docId: number;
     editing: boolean;
@@ -92,7 +99,14 @@ type Peer = {
   remoteCandidates: number;
   lastStatsAt: number;
   statsTimer?: ReturnType<typeof setInterval>;
-  pc: RTCPeerConnection;
+  pc?: RTCPeerConnection;
+  relay?: {
+    channel: string;
+    sequence: number;
+    pending: Map<number, number>;
+    buffered: number;
+    timer?: ReturnType<typeof setTimeout>;
+  };
   channel?: RTCDataChannel;
   candidates: RTCIceCandidateInit[];
   queue: string[];
@@ -138,7 +152,11 @@ const id = () => {
 };
 const sessionKey = (role: Role) => `doto.session.${role}`;
 const savedKey = (s: Session) =>
-  `doto.lesson.${s.role}.${s.lessonId}${s.role === "student" ? "." + s.id : ""}`;
+  `doto.lesson.${s.role === "teacher" && s.host === false ? "controller" : s.role}.${s.lessonId}${s.role === "student" || s.host === false ? "." + s.id : ""}`;
+const credentialKey = (s: Session) =>
+  s.role === "teacher" && s.host === false
+    ? "doto.session.controller"
+    : sessionKey(s.role);
 export async function lessonHistory(): Promise<SavedLesson[]> {
   return (await entries())
     .filter(([k]) => String(k).startsWith("doto.lesson.teacher."))
@@ -155,6 +173,7 @@ export class Classroom {
     error: "",
     saveState: "saved",
     savedAt: null,
+    controllerCount: 0,
     presence: null,
   };
   documents = new Map<number, Y.Doc>();
@@ -200,10 +219,10 @@ export class Classroom {
       peerId: peer.id,
       peerConnectionId: peer.diagnosticId,
       durationMs: Math.round(performance.now() - peer.startedAt),
-      connectionState: peer.pc.connectionState,
-      iceState: peer.pc.iceConnectionState,
-      gatheringState: peer.pc.iceGatheringState,
-      signalingState: peer.pc.signalingState,
+      connectionState: peer.pc?.connectionState,
+      iceState: peer.pc?.iceConnectionState,
+      gatheringState: peer.pc?.iceGatheringState,
+      signalingState: peer.pc?.signalingState,
       channelState: peer.channel?.readyState,
       ready: peer.ready,
       localCandidates: peer.localCandidates,
@@ -215,6 +234,7 @@ export class Classroom {
     });
   }
   private async traceStats(peer: Peer) {
+    if (!peer.pc) return;
     peer.lastStatsAt = performance.now();
     const sampledState = {
       connectionState: peer.pc.connectionState,
@@ -301,15 +321,28 @@ export class Classroom {
     if (!this.state.session) throw Error("먼저 수업에 입장해 주세요.");
     return this.state.session;
   }
+  get isHost() {
+    return (
+      this.state.session?.role === "teacher" &&
+      this.state.session.host !== false
+    );
+  }
+  private controller(peerId: number) {
+    return !!this.lesson.controllers?.some((p) => p.id === peerId);
+  }
   private remember() {
     try {
       localStorage.setItem(
-        sessionKey(this.session.role),
+        credentialKey(this.session),
         JSON.stringify(this.session),
       );
-      if (this.session.role === "student")
+      sessionStorage.setItem(
+        "doto.active-session",
+        JSON.stringify(this.session),
+      );
+      if (!this.isHost)
         localStorage.setItem(
-          `doto.student.${this.session.lessonId}`,
+          `doto.${this.session.role === "teacher" ? "controller" : "student"}.${this.session.lessonId}`,
           JSON.stringify(this.session),
         );
     } catch (error) {
@@ -325,7 +358,7 @@ export class Classroom {
     this.emit({ lesson: { ...this.lesson }, saveState: "saving" });
     clearTimeout(this.saveTimer);
     this.saveTimer = setTimeout(() => void this.flush(), 120);
-    if (broadcast && this.session.role === "teacher" && !this.broadcastTimer)
+    if (broadcast && this.isHost && !this.broadcastTimer)
       this.broadcastTimer = setTimeout(() => {
         this.broadcastTimer = undefined;
         for (const peer of this.peers.values())
@@ -406,10 +439,26 @@ export class Classroom {
     for (const message of this.waitingSignals.splice(0))
       this.queueSignal(message);
   }
-  async restore(role: Role) {
-    const raw = localStorage.getItem(sessionKey(role));
-    if (!raw) return false;
+  async restore(role: Role, host = false) {
     try {
+      let active: Session | null = null;
+      try {
+        active = JSON.parse(
+          sessionStorage.getItem("doto.active-session") || "null",
+        );
+      } catch {
+        // A damaged tab hint must not prevent restoring the saved lesson.
+      }
+      const raw =
+        active?.role === role && (!host || active.host !== false)
+          ? JSON.stringify(active)
+          : host
+            ? localStorage.getItem(sessionKey("teacher"))
+            : role === "teacher"
+              ? localStorage.getItem("doto.session.controller") ||
+                localStorage.getItem(sessionKey(role))
+              : localStorage.getItem(sessionKey(role));
+      if (!raw) return false;
       const session = JSON.parse(raw) as Session;
       const record = await get<SavedLesson>(savedKey(session));
       if (!record) return false;
@@ -422,7 +471,7 @@ export class Classroom {
       return !!this.state.lesson;
     }
   }
-  async start(record?: SavedLesson) {
+  async start(record?: SavedLesson, title?: string) {
     await this.disconnect();
     const lesson = record?.lesson ?? {
       id: createUuid(),
@@ -435,6 +484,7 @@ export class Classroom {
       members: [],
     };
     lesson.ended = false;
+    if (title?.trim()) lesson.title = title.trim().slice(0, 150);
     const session: Session = record?.session ?? {
       role: "teacher",
       lessonId: lesson.id,
@@ -442,6 +492,7 @@ export class Classroom {
       token: "",
       id: -1,
       name: "선생님",
+      host: true,
     };
     this.load(
       record
@@ -457,6 +508,11 @@ export class Classroom {
     this.emit({ status: "ended" });
   }
   async join(code: string, name: string, fresh = false) {
+    code = code.trim();
+    const relay = code.startsWith("*");
+    if (relay) code = code.slice(1);
+    if (!/^(?:\d{6}|\d{8})$/.test(code))
+      throw Error("입장 코드를 확인해 주세요.");
     await this.disconnect();
     this.attemptId = createUuid();
     this.trace("join.start", { role: "student" });
@@ -469,38 +525,54 @@ export class Classroom {
     });
     await this.openSocket();
     // The code resolves a lesson first. Saved credentials are selected by code or supplied lesson link.
-    const requestedLesson = (await this.rpcSignal({ type: "lookup", code }))
-      .lessonId as string;
+    const lookup = await this.rpcSignal({ type: "lookup", code });
+    const requestedLesson = lookup.lessonId as string;
+    const role: Role = lookup.role === "teacher" ? "teacher" : "student";
+    const identityPrefix = role === "teacher" ? "controller" : "student";
     let previous: Session | undefined;
     if (!fresh) {
       if (requestedLesson)
         previous =
           JSON.parse(
-            localStorage.getItem(`doto.student.${requestedLesson}`) || "null",
+            localStorage.getItem(`doto.${identityPrefix}.${requestedLesson}`) ||
+              "null",
           ) || undefined;
       if (!previous)
         for (let i = 0; i < localStorage.length; i++) {
           const k = localStorage.key(i)!;
-          if (k.startsWith("doto.student.")) {
+          if (k.startsWith(`doto.${identityPrefix}.`)) {
             const s = JSON.parse(localStorage.getItem(k)!);
             if (s.code === code) previous = s;
           }
         }
     }
+    // Entering a different name never resumes another child's saved identity.
+    if (
+      role === "student" &&
+      previous &&
+      name.trim() &&
+      previous.name !== name.trim()
+    )
+      previous = undefined;
     // Discovering a reopened class by code can retry with its saved credential before creating a new participant.
     const reply = await this.rpcSignal({
       type: "join",
       code,
       name,
       token: previous?.token,
+      relay,
     });
+    if (relay && reply.relay !== true)
+      throw Error("서버를 업데이트한 뒤 다시 입장해 주세요.");
     const session: Session = {
-      role: "student",
+      role: reply.role === "teacher" ? "teacher" : "student",
       lessonId: reply.lessonId,
-      code,
+      code: reply.code,
       token: reply.token,
       id: reply.id,
       name: reply.name,
+      host: false,
+      relay,
     };
     const saved = await get<SavedLesson>(savedKey(session));
     this.load(
@@ -571,12 +643,13 @@ export class Classroom {
       if (this.socket !== ws || this.closed) return;
       try {
         const m = JSON.parse(e.data);
-        this.trace("signal.receive", {
-          messageType: m.type,
-          requestId: m.requestId,
-          descriptionType: m.description?.type,
-          hasCandidate: !!m.candidate,
-        });
+        if (m.type !== "relay")
+          this.trace("signal.receive", {
+            messageType: m.type,
+            requestId: m.requestId,
+            descriptionType: m.description?.type,
+            hasCandidate: !!m.candidate,
+          });
         // Responses must resolve immediately; SDP and ICE operations run in order.
         if (m.type === "result") this.result(m);
         else this.queueSignal(m);
@@ -614,16 +687,19 @@ export class Classroom {
       });
       if (this.socket !== ws || this.closed) return;
       this.signalJoined = false;
+      for (const peer of [...this.peers.values()])
+        if (peer.relay) this.closePeer(peer, "socket-close");
       if (!this.reconnectAttempt && this.state.lesson && !this.lesson.ended) {
         this.reconnectAttempt = true;
         setTimeout(() => {
-          if (!this.closed)
+          if (!this.closed && this.socket === ws)
             void this.reconnect(false).catch((e) => this.fail(e));
         }, 1000);
       } else
         this.emit({
-          message:
-            "새 입장 연결이 끊겼어요. 이미 연결된 글쓰기는 계속할 수 있어요.",
+          message: this.state.session?.relay
+            ? "수업 연결이 끊겼어요. 글은 계속 쓰고, 다시 연결할 수 있어요."
+            : "새 입장 연결이 끊겼어요. 이미 연결된 글쓰기는 계속할 수 있어요.",
         });
     };
   }
@@ -645,20 +721,28 @@ export class Classroom {
       message: "수업에 다시 연결하는 중이에요…",
     });
     await this.openSocket();
-    if (this.session.role === "teacher") {
+    if (this.isHost) {
       const r = await this.rpcSignal({
         type: "create",
         lessonId: this.lesson.id,
         token: this.session.token,
         locked: this.lesson.settings.locked,
         members: this.lesson.members,
+        controllers: this.lesson.controllers ?? [],
       });
       this.emit({
-        session: { ...this.session, code: r.code, token: r.token },
+        session: {
+          ...this.session,
+          code: r.code,
+          token: r.token,
+          teacherCode: r.teacherCode,
+          host: true,
+        },
         status: "connected",
         message: "",
       });
       this.lesson.ended = false;
+      this.reconnectAttempt = false;
       this.remember();
       this.changed();
     } else {
@@ -676,7 +760,11 @@ export class Classroom {
           code: this.session.code,
           token: this.session.token,
           name: this.session.name,
+          lessonId: this.session.lessonId,
+          relay: this.session.relay === true,
         });
+        if (this.session.relay && r.relay !== true)
+          throw Error("서버를 업데이트한 뒤 다시 입장해 주세요.");
         this.emit({
           session: { ...this.session, token: r.token, id: r.id, name: r.name },
         });
@@ -789,18 +877,29 @@ export class Classroom {
           "다른 탭에서 같은 수업을 열었어요. 이 탭에서는 다시 연결을 눌러 이어갈 수 있어요.",
       });
     }
-    if (m.type === "peer" && this.session.role === "teacher") {
+    if (m.type === "relay") return this.receiveRelay(m);
+    if (m.type === "peer" && this.isHost) {
       const member: Member = { id: m.id, name: m.name, token: m.token };
-      if (!this.lesson.members.some((p) => p.id === member.id))
-        this.lesson.members.push(member);
-      if (!this.lesson.board.participants!.some((p) => p.id === m.id))
-        this.lesson.board.participants!.push({
-          id: m.id,
-          name: m.name,
-          connected: false,
-          joinedAt: Date.now(),
-        });
+      if (m.role === "teacher" && m.id < -1) {
+        this.lesson.controllers ??= [];
+        if (!this.controller(m.id)) this.lesson.controllers.push(member);
+      } else {
+        if (!this.lesson.members.some((p) => p.id === member.id))
+          this.lesson.members.push(member);
+        if (!this.lesson.board.participants!.some((p) => p.id === m.id))
+          this.lesson.board.participants!.push({
+            id: m.id,
+            name: m.name,
+            connected: false,
+            joinedAt: Date.now(),
+          });
+      }
       this.changed();
+      if (typeof m.relayId === "string") {
+        const peer = this.makeRelayPeer(m.id, m.relayId);
+        this.sendRelay(peer, { kind: "open" });
+        return;
+      }
       const peer = this.makePeer(m.id);
       this.attachChannel(peer, peer.pc.createDataChannel("doto"));
       await peer.pc.setLocalDescription(await peer.pc.createOffer());
@@ -811,7 +910,7 @@ export class Classroom {
         description: peer.pc.localDescription,
       });
     }
-    if (m.type === "teacher-ready" && this.session.role === "student") {
+    if (m.type === "teacher-ready" && !this.isHost) {
       this.emit({
         status: "connecting",
         message: "선생님과 다시 연결하는 중이에요…",
@@ -819,12 +918,14 @@ export class Classroom {
       this.startJoinTimeout();
     }
     if (m.type === "signal") {
-      const peerId = this.session.role === "student" ? -1 : m.from;
+      if (!this.isHost && this.session.relay) return;
+      const peerId = this.isHost ? m.from : -1;
       let peer = this.peers.get(peerId);
+      if (peer?.relay) return;
       // Trickle ICE can arrive before the offer. Keep those candidates on the same peer.
       if (
         m.description?.type === "offer" &&
-        (!peer || peer.pc.remoteDescription)
+        (!peer || peer.pc?.remoteDescription)
       )
         peer = this.makePeer(peerId);
       if (!peer) {
@@ -835,36 +936,107 @@ export class Classroom {
         }
         return;
       }
+      const pc = peer.pc;
+      if (!pc) return;
       if (m.description) {
-        await peer.pc.setRemoteDescription(m.description);
+        await pc.setRemoteDescription(m.description);
         this.tracePeer("rtc.description", peer, {
           descriptionType: m.description.type,
         });
         for (const candidate of peer.candidates.splice(0))
-          await peer.pc.addIceCandidate(candidate);
+          await pc.addIceCandidate(candidate);
         if (m.description.type === "offer") {
-          await peer.pc.setLocalDescription(await peer.pc.createAnswer());
+          await pc.setLocalDescription(await pc.createAnswer());
           this.sendSignal({
             type: "signal",
             to: peerId,
-            description: peer.pc.localDescription,
+            description: pc.localDescription,
           });
         }
       } else if (m.candidate) {
         this.traceRemoteCandidate(peer, m.candidate);
-        if (peer.pc.remoteDescription)
-          await peer.pc.addIceCandidate(m.candidate);
+        if (pc.remoteDescription) await pc.addIceCandidate(m.candidate);
         else peer.candidates.push(m.candidate);
       }
     }
   }
-  private makePeer(peerId: number): Peer {
+  private makeRelayPeer(peerId: number, channel: string): Peer {
+    const old = this.peers.get(peerId);
+    if (old) this.closePeer(old, "replaced");
+    const peer: Peer = {
+      id: peerId,
+      diagnosticId: createUuid(),
+      attemptId: this.attemptId,
+      startedAt: performance.now(),
+      localCandidates: 0,
+      remoteCandidates: 0,
+      lastStatsAt: 0,
+      candidates: [],
+      queue: [],
+      chunks: new Map(),
+      ready: false,
+      relay: { channel, sequence: 0, pending: new Map(), buffered: 0 },
+    };
+    this.peers.set(peerId, peer);
+    this.tracePeer("peer.created", peer);
+    peer.timer = setTimeout(() => this.closePeer(peer, "timeout"), 20000);
+    return peer;
+  }
+  private sendRelay(peer: Peer, message: Record<string, unknown>) {
+    const ws = this.socket;
+    if (!peer.relay || ws?.readyState !== WebSocket.OPEN) return false;
+    ws.send(
+      JSON.stringify({
+        type: "relay",
+        to: peer.id,
+        channel: peer.relay.channel,
+        ...message,
+      }),
+    );
+    return true;
+  }
+  private receiveRelay(message: any) {
+    const peerId = this.isHost ? message.from : -1;
+    if (
+      !this.isHost &&
+      this.session.relay &&
+      message.from === "teacher" &&
+      message.kind === "open" &&
+      typeof message.channel === "string"
+    ) {
+      const peer = this.makeRelayPeer(peerId, message.channel);
+      this.sendRelay(peer, { kind: "ready" });
+      this.peerOpened(peer);
+      return;
+    }
+    const peer = this.peers.get(peerId);
+    const relay = peer?.relay;
+    if (!peer || !relay || message.channel !== relay.channel) return;
+    if (message.kind === "closed") this.closePeer(peer, "closed");
+    else if (message.kind === "ready" && this.isHost && !peer.ready)
+      this.peerOpened(peer);
+    else if (
+      message.kind === "data" &&
+      peer.ready &&
+      typeof message.text === "string"
+    ) {
+      this.receivePacket(peer, message.text);
+      this.sendRelay(peer, { kind: "ack", sequence: message.sequence });
+    } else if (message.kind === "ack" && relay.pending.has(message.sequence)) {
+      relay.buffered -= relay.pending.get(message.sequence)!;
+      relay.pending.delete(message.sequence);
+      clearTimeout(relay.timer);
+      relay.timer = undefined;
+      this.drain(peer);
+    }
+  }
+  private makePeer(peerId: number): Peer & { pc: RTCPeerConnection } {
     const old = this.peers.get(peerId);
     if (old) this.closePeer(old, "replaced");
     const pc = new RTCPeerConnection({
       iceServers: this.stun.length ? [{ urls: this.stun }] : [],
     });
-    const peer: Peer = {
+    const peer: Peer & { pc: RTCPeerConnection } = {
       id: peerId,
       diagnosticId: createUuid(),
       attemptId: this.attemptId,
@@ -889,7 +1061,7 @@ export class Classroom {
       if (!peer.ready) {
         this.tracePeer("peer.timeout", peer);
         this.closePeer(peer, "timeout");
-        if (this.session.role === "student")
+        if (!this.isHost)
           this.emit({
             status: "offline",
             message:
@@ -941,11 +1113,19 @@ export class Classroom {
     this.tracePeer("peer.closed", peer, { reason });
     void this.traceStats(peer);
     this.peers.delete(peer.id);
+    peer.ready = false;
+    peer.queue.length = 0;
+    peer.chunks.clear();
+    if (peer.relay) {
+      clearTimeout(peer.relay.timer);
+      if (!["closed", "socket-close", "replaced"].includes(reason))
+        this.sendRelay(peer, { kind: "close" });
+    }
     clearTimeout(peer.timer);
     clearInterval(peer.statsTimer);
-    peer.pc.close();
+    peer.pc?.close();
     if (!this.state.lesson || this.closed) return;
-    if (this.session.role === "teacher") {
+    if (this.isHost) {
       this.connection(peer.id, false);
     } else {
       this.emit({
@@ -958,6 +1138,11 @@ export class Classroom {
     }
   }
   private connection(studentId: number, connected: boolean) {
+    this.emit({
+      controllerCount: [...this.peers.values()].filter(
+        (p) => p.ready && this.controller(p.id),
+      ).length,
+    });
     this.lesson.board.participants = this.lesson.board.participants!.map((p) =>
       p.id === studentId ? { ...p, connected } : p,
     );
@@ -978,60 +1163,72 @@ export class Classroom {
       this.tracePeer("channel.error", peer);
       this.closePeer(peer, "channel-error");
     };
-    channel.onopen = () => {
-      this.tracePeer("channel.open", peer);
-      void this.traceStats(peer);
-      peer.ready = true;
-      clearTimeout(peer.timer);
-      clearTimeout(this.joinTimer);
-      if (this.session.role === "teacher") {
-        this.connection(peer.id, true);
-        this.sendSnapshot(peer);
-        for (const d of this.lesson.board.docs.filter(
-          (d) => d.studentId === peer.id,
-        ))
-          this.syncDoc(peer, d.id);
-      } else {
-        this.emit({ status: "connected", message: "" });
-        // Exchange both state vectors on reconnection, including open editors.
-        for (const d of this.lesson.board.docs) this.syncDoc(peer, d.id);
-      }
-      this.drain(peer);
-    };
-    channel.onmessage = (e) => {
-      try {
-        const packet = JSON.parse(e.data);
-        if (packet.type === "chunk") {
-          if (typeof packet.text !== "string" || packet.text.length > 14000)
-            return;
-          const chunk = peer.chunks.get(packet.id) ?? {
-            parts: [],
-            size: 0,
-            at: Date.now(),
-          };
-          chunk.parts.push(packet.text);
-          chunk.size += packet.text.length;
-          if (chunk.size > 16 * 1024 * 1024) {
-            peer.chunks.delete(packet.id);
-            return;
-          }
-          peer.chunks.set(packet.id, chunk);
-          for (const [key, value] of peer.chunks)
-            if (Date.now() - value.at > 30000) peer.chunks.delete(key);
-          if (packet.last) {
-            peer.chunks.delete(packet.id);
-            this.receive(peer, JSON.parse(chunk.parts.join("")));
-          }
-        } else this.receive(peer, packet);
-      } catch (error) {
-        this.tracePeer("channel.receive_failed", peer, errorFields(error));
-        this.emit({ error: "받은 자료를 읽지 못했어요. 다시 연결해 주세요." });
-      }
-    };
+    channel.onopen = () => this.peerOpened(peer);
+    channel.onmessage = (e) => this.receivePacket(peer, e.data);
+  }
+  private peerOpened(peer: Peer) {
+    if (this.peers.get(peer.id) !== peer) return;
+    this.reconnectAttempt = false;
+    this.tracePeer("channel.open", peer);
+    void this.traceStats(peer);
+    peer.ready = true;
+    clearTimeout(peer.timer);
+    clearTimeout(this.joinTimer);
+    if (this.isHost) {
+      this.connection(peer.id, true);
+      this.sendSnapshot(peer);
+      for (const d of this.lesson.board.docs.filter(
+        (d) => this.controller(peer.id) || d.studentId === peer.id,
+      ))
+        this.syncDoc(peer, d.id);
+    } else {
+      this.emit({ status: "connected", message: "" });
+      // Exchange both state vectors on reconnection, including open editors.
+      for (const d of this.lesson.board.docs) this.syncDoc(peer, d.id);
+    }
+    this.drain(peer);
+  }
+  private receivePacket(peer: Peer, raw: string) {
+    if (this.peers.get(peer.id) !== peer || !peer.ready) return;
+    try {
+      const packet = JSON.parse(raw);
+      if (packet.type === "chunk") {
+        if (typeof packet.text !== "string" || packet.text.length > 14000)
+          return;
+        const chunk = peer.chunks.get(packet.id) ?? {
+          parts: [],
+          size: 0,
+          at: Date.now(),
+        };
+        chunk.parts.push(packet.text);
+        chunk.size += packet.text.length;
+        if (chunk.size > 16 * 1024 * 1024) {
+          peer.chunks.delete(packet.id);
+          return;
+        }
+        peer.chunks.set(packet.id, chunk);
+        for (const [key, value] of peer.chunks)
+          if (Date.now() - value.at > 30000) peer.chunks.delete(key);
+        if (packet.last) {
+          peer.chunks.delete(packet.id);
+          this.receive(peer, JSON.parse(chunk.parts.join("")));
+        }
+      } else this.receive(peer, packet);
+    } catch (error) {
+      this.tracePeer("channel.receive_failed", peer, errorFields(error));
+      this.emit({ error: "받은 자료를 읽지 못했어요. 다시 연결해 주세요." });
+    }
   }
   private send(peer: Peer, message: any) {
     if (!peer.ready) return;
     const raw = JSON.stringify(message);
+    if (
+      peer.relay &&
+      (raw.length > 16 * 1024 * 1024 || peer.queue.length > 2048)
+    ) {
+      this.closePeer(peer, "send");
+      return;
+    }
     if (raw.length <= 12000) peer.queue.push(raw);
     else {
       const key = createUuid();
@@ -1048,6 +1245,31 @@ export class Classroom {
     this.drain(peer);
   }
   private drain(peer: Peer) {
+    if (peer.relay) {
+      const relay = peer.relay;
+      if (!peer.ready) return;
+      // A byte window permits frequent small edits while bounding large transfers.
+      while (peer.queue.length && relay.pending.size < 256) {
+        const cost = peer.queue[0].length * 3 + 256;
+        if (relay.pending.size && relay.buffered + cost > 128 * 1024) break;
+        const sequence = ++relay.sequence;
+        if (
+          !this.sendRelay(peer, {
+            kind: "data",
+            sequence,
+            text: peer.queue.shift()!,
+          })
+        ) {
+          this.closePeer(peer, "socket-close");
+          return;
+        }
+        relay.pending.set(sequence, cost);
+        relay.buffered += cost;
+      }
+      if (relay.pending.size && !relay.timer)
+        relay.timer = setTimeout(() => this.closePeer(peer, "timeout"), 20000);
+      return;
+    }
     const c = peer.channel;
     if (!c || c.readyState !== "open") return;
     while (peer.queue.length && c.bufferedAmount < 256 * 1024)
@@ -1055,17 +1277,21 @@ export class Classroom {
   }
   private sendSnapshot(peer: Peer) {
     const b = this.lesson.board;
+    const teacher = this.controller(peer.id);
     this.send(peer, {
       type: "board",
       lesson: {
         ...this.lesson,
         members: [],
+        controllers: [],
         board: {
           ...b,
-          trash: [],
-          participants: b.participants!.filter((p) => p.id === peer.id),
+          trash: teacher ? b.trash : [],
+          participants: b.participants!.filter(
+            (p) => teacher || p.id === peer.id,
+          ),
           docs: b.docs
-            .filter((d) => d.studentId === peer.id)
+            .filter((d) => teacher || d.studentId === peer.id)
             .map((d) => ({
               ...d,
               html: undefined,
@@ -1073,7 +1299,9 @@ export class Classroom {
               title: "",
               sources: [],
             })),
-          feedback: b.feedback.filter((f) => f.studentId === peer.id),
+          feedback: b.feedback.filter(
+            (f) => teacher || f.studentId === peer.id,
+          ),
         },
       },
     });
@@ -1091,16 +1319,17 @@ export class Classroom {
   }
   private receive(peer: Peer, m: any) {
     if (m.type === "result") {
-      if (this.session.role === "student") this.result(m);
+      if (!this.isHost) this.result(m);
       return;
     }
     if (m.type === "sync") {
       const doc = this.lesson.board.docs.find((d) => d.id === m.docId);
       if (
         !doc ||
-        (this.session.role === "teacher"
-          ? doc.studentId !== peer.id
-          : doc.studentId !== this.session.id)
+        (this.isHost
+          ? !this.controller(peer.id) && doc.studentId !== peer.id
+          : this.session.role !== "teacher" &&
+            doc.studentId !== this.session.id)
       )
         return;
       const y = this.documents.get(doc.id) ?? this.registerDoc(doc.id);
@@ -1117,20 +1346,27 @@ export class Classroom {
           docId: doc.id,
           data: toBase64(encoding.toUint8Array(encoder)),
         });
-      if (this.session.role === "student") this.sendRebases(peer, doc.id);
-    } else if (this.session.role === "teacher" && m.type === "action") {
-      try {
-        const value = this.applyAction(peer.id, m.action);
-        this.sendSnapshot(peer);
-        this.send(peer, { type: "result", requestId: m.requestId, value });
-      } catch (e) {
-        this.send(peer, {
-          type: "result",
-          requestId: m.requestId,
-          error: e instanceof Error ? e.message : "요청을 처리하지 못했어요.",
-        });
-      }
-    } else if (this.session.role === "student" && m.type === "board") {
+      if (!this.isHost) this.sendRebases(peer, doc.id);
+    } else if (this.isHost && m.type === "action") {
+      void (async () => {
+        try {
+          const value = this.applyAction(peer.id, m.action);
+          await this.flush();
+          if (this.state.saveState === "error")
+            throw Error(
+              "수업을 연 기기에 저장하지 못했어요. 다시 시도해 주세요.",
+            );
+          this.sendSnapshot(peer);
+          this.send(peer, { type: "result", requestId: m.requestId, value });
+        } catch (e) {
+          this.send(peer, {
+            type: "result",
+            requestId: m.requestId,
+            error: e instanceof Error ? e.message : "요청을 처리하지 못했어요.",
+          });
+        }
+      })();
+    } else if (!this.isHost && m.type === "board") {
       const next = m.lesson as Lesson;
       if (next.id !== this.lesson.id) return;
       const oldFeedback = this.lesson.board.feedback.length;
@@ -1143,7 +1379,11 @@ export class Classroom {
         this.project(d.id);
         if (!existed) this.syncDoc(peer, d.id);
       }
-      if (next.settings.feedback && next.board.feedback.length > oldFeedback)
+      if (
+        this.session.role === "student" &&
+        next.settings.feedback &&
+        next.board.feedback.length > oldFeedback
+      )
         this.emit({ message: "선생님이 새 피드백을 남겼어요." });
       if (
         !next.settings.feedback &&
@@ -1151,10 +1391,16 @@ export class Classroom {
       )
         this.emit({ message: "" });
       this.changed(false);
-    } else if (this.session.role === "student" && m.type === "presence")
+    } else if (
+      this.isHost &&
+      this.controller(peer.id) &&
+      m.type === "presence"
+    ) {
+      if (m.clear) this.clearPresence(m.docId);
+      else this.presence(m.docId, !!m.editing, m.selection);
+    } else if (!this.isHost && m.type === "presence")
       this.emit({ presence: m.presence });
-    else if (this.session.role === "student" && m.type === "ended")
-      this.receiveEnd();
+    else if (!this.isHost && m.type === "ended") this.receiveEnd();
   }
   private registerDoc(docId: number, bytes?: Uint8Array) {
     const y = new Y.Doc({ gc: false });
@@ -1166,18 +1412,21 @@ export class Classroom {
       const owner = this.lesson.board.docs.find(
         (d) => d.id === docId,
       )?.studentId;
-      const peer = this.peers.get(
-        this.session.role === "teacher" ? owner! : -1,
-      );
-      if (peer && peer !== origin) {
-        const encoder = encoding.createEncoder();
-        sync.writeUpdate(encoder, update);
-        this.send(peer, {
-          type: "sync",
-          docId,
-          data: toBase64(encoding.toUint8Array(encoder)),
-        });
-      }
+      const recipients = this.isHost
+        ? [...this.peers.values()].filter(
+            (peer) => peer.id === owner || this.controller(peer.id),
+          )
+        : [this.peers.get(-1)].filter((peer): peer is Peer => !!peer);
+      for (const peer of recipients)
+        if (peer !== origin) {
+          const encoder = encoding.createEncoder();
+          sync.writeUpdate(encoder, update);
+          this.send(peer, {
+            type: "sync",
+            docId,
+            data: toBase64(encoding.toUint8Array(encoder)),
+          });
+        }
     });
     this.project(docId);
     return y;
@@ -1220,7 +1469,9 @@ export class Classroom {
     )
       return;
     if (changes.groupId && this.session.role === "teacher") {
-      this.applyAction(-1, { type: "move", docId, groupId: changes.groupId });
+      void this.action({ type: "move", docId, groupId: changes.groupId }).catch(
+        (e) => this.fail(e),
+      );
     }
     const y = this.documents.get(docId);
     if (!y) return;
@@ -1229,7 +1480,10 @@ export class Classroom {
         changes.title !== undefined &&
         changes.title !== y.getMap("meta").get("title")
       )
-        y.getMap("meta").set("title", changes.title.slice(0, 300));
+        y.getMap("meta").set(
+          "title",
+          changes.title.slice(0, DOCUMENT_TITLE_MAX_LENGTH),
+        );
       if (changes.sources !== undefined)
         y.getMap("meta").set(
           "sources",
@@ -1254,7 +1508,7 @@ export class Classroom {
     });
   }
   rebaseAnchors = (docId: number, anchors: AnchorRebase[]) => {
-    if (this.session.role === "teacher") {
+    if (this.isHost) {
       this.applyAction(-1, { type: "rebase-anchors", docId, anchors });
       return;
     }
@@ -1306,7 +1560,16 @@ export class Classroom {
       .finally(() => this.rebasesSending.delete(docId));
   }
   action = async (action: any): Promise<any> => {
-    if (this.session.role === "teacher") return this.applyAction(-1, action);
+    if (this.isHost) {
+      const value = this.applyAction(-1, action);
+      // A success acknowledgement must survive an immediate refresh.
+      await this.flush();
+      if (this.state.saveState === "error")
+        throw Error(
+          "변경 내용을 저장하지 못했어요. 새로고침하지 말고 다시 시도해 주세요.",
+        );
+      return value;
+    }
     const peer = this.peers.get(-1);
     if (!peer?.ready || this.lesson.ended)
       throw Error(
@@ -1320,7 +1583,7 @@ export class Classroom {
   };
   private applyAction(actor: number, a: any): any {
     const b = this.lesson.board;
-    const teacher = actor === -1;
+    const teacher = actor === -1 || this.controller(actor);
     const ownDoc = () => {
       const d = b.docs.find((d) => d.id === a.docId);
       if (!d || (!teacher && d.studentId !== actor))
@@ -1340,7 +1603,7 @@ export class Classroom {
         : this.lesson.members.find((p) => p.id === actor)!.name;
       b.docs.push({
         id: docId,
-        studentId: actor,
+        studentId: teacher ? -1 : actor,
         groupId: a.groupId,
         name,
         title: "",
@@ -1361,6 +1624,10 @@ export class Classroom {
       const current = b.docs.find((x) => x.id === d.id)!;
       if (!current.title.trim() || !current.paragraphs.join("").trim())
         throw Error("제목과 글을 적어 주세요.");
+      if (current.title.length > DOCUMENT_TITLE_MAX_LENGTH)
+        throw Error(
+          `제목을 ${DOCUMENT_TITLE_MAX_LENGTH}자 이내로 줄여 주세요.`,
+        );
       const publishedAt = d.publishedAt || Date.now();
       const copy: StudentDoc = {
         ...current,
@@ -1396,7 +1663,7 @@ export class Classroom {
         : this.lesson.members.find((p) => p.id === actor)!.name;
       b.comments[a.docId] = [
         ...(b.comments[a.docId] || []),
-        { id: createUuid(), studentId: actor, name, text },
+        { id: createUuid(), studentId: teacher ? -1 : actor, name, text },
       ];
     } else if (a.type === "delete-comment") {
       b.comments[a.docId] = (b.comments[a.docId] || []).filter(
@@ -1561,6 +1828,11 @@ export class Classroom {
         const d = ownDoc();
         if (!b.groups.some((g) => g.id === a.groupId))
           throw Error("그룹을 다시 골라 주세요.");
+        if (a.positioned === true) {
+          Object.assign(b, moveBoardCard(b, d.id, a.groupId, a.beforeId));
+          this.changed();
+          return result;
+        }
         const order = b.posts
           .filter((p) => p.id !== d.id && p.groupId === a.groupId)
           .sort((x, y) => x.manualOrder - y.manualOrder)
@@ -1586,6 +1858,12 @@ export class Classroom {
     selection?: FeedbackSelection,
   ) => {
     if (this.state.session?.role !== "teacher") return;
+    if (!this.isHost) {
+      const host = this.peers.get(-1);
+      if (host)
+        this.send(host, { type: "presence", docId, editing, selection });
+      return;
+    }
     const owner = this.lesson.board.docs.find((d) => d.id === docId)?.studentId;
     const peer = this.peers.get(owner!);
     if (peer)
@@ -1595,6 +1873,11 @@ export class Classroom {
       });
   };
   clearPresence = (docId: number) => {
+    if (this.state.session?.role === "teacher" && !this.isHost) {
+      const host = this.peers.get(-1);
+      if (host) this.send(host, { type: "presence", docId, clear: true });
+      return;
+    }
     const owner = this.state.lesson?.board.docs.find(
       (d) => d.id === docId,
     )?.studentId;
@@ -1602,7 +1885,7 @@ export class Classroom {
     if (peer) this.send(peer, { type: "presence", presence: null });
   };
   async end() {
-    if (this.session.role !== "teacher") return;
+    if (!this.isHost) throw Error("수업을 연 기기에서 수업을 마쳐 주세요.");
     this.lesson.ended = true;
     this.changed();
     await this.flush();
@@ -1614,6 +1897,13 @@ export class Classroom {
   }
   private receiveEnd() {
     this.lesson.ended = true;
+    this.lesson.board.participants = this.lesson.board.participants?.map(
+      (p) => ({ ...p, connected: false }),
+    );
+    this.lesson.board.docs = this.lesson.board.docs.map((d) => ({
+      ...d,
+      connected: false,
+    }));
     this.changed(false);
     clearTimeout(this.joinTimer);
     this.closed = true;
@@ -1631,9 +1921,38 @@ export class Classroom {
     this.signalJoined = false;
     this.waitingSignals = [];
     clearTimeout(this.joinTimer);
+    clearTimeout(this.broadcastTimer);
+    this.broadcastTimer = undefined;
     for (const p of [...this.peers.values()]) this.closePeer(p);
     this.socket?.close();
     this.socket = undefined;
+    this.emit({ controllerCount: 0 });
+  }
+  async leave() {
+    const session = this.state.session;
+    await this.disconnect();
+    sessionStorage.removeItem("doto.active-session");
+    if (session && !this.isHost) {
+      localStorage.removeItem(credentialKey(session));
+      // Keep the per-lesson identity for an explicit code entry later. Leaving
+      // removes automatic resume, without registering another device each time.
+    }
+    this.emit({
+      lesson: null,
+      session: null,
+      status: "idle",
+      message: "",
+      presence: null,
+    });
+  }
+  async rotateTeacherCode() {
+    if (!this.isHost) throw Error("수업을 연 기기에서 바꿔 주세요.");
+    const result = await this.rpcSignal({ type: "rotate-teacher-code" });
+    this.emit({
+      session: { ...this.session, teacherCode: result.teacherCode },
+    });
+    this.remember();
+    await this.flush();
   }
   fail(e: unknown) {
     this.trace("classroom.error", errorFields(e));

@@ -34,6 +34,8 @@ import {
 } from "./TeacherMessages";
 
 interface Props extends MessageActions {
+  selectedDocId?: number | null;
+  onSelectDoc?: (id: number | null) => void;
   participants: Participant[];
   onFinishHelp: (studentId: number, move?: boolean) => void;
   onFeedbackResponse: (id: number, response: Feedback["response"]) => void;
@@ -48,6 +50,8 @@ interface Props extends MessageActions {
   ) => void;
 }
 export function Teacher({
+  selectedDocId,
+  onSelectDoc,
   docs,
   feedback,
   groups,
@@ -59,7 +63,9 @@ export function Teacher({
   onSendMessage,
   onReadMessages,
 }: Props) {
-  const [selected, setSelected] = useState<number | null>(null);
+  const [localSelected, setLocalSelected] = useState<number | null>(null);
+  const selected = selectedDocId === undefined ? localSelected : selectedDocId;
+  const setSelected = onSelectDoc ?? setLocalSelected;
   const [size, setSize] = useState("normal");
   const [sort, setSort] = useState(false);
   const [groupFilter, setGroupFilter] = useState("all");
@@ -75,11 +81,7 @@ export function Teacher({
     (p) =>
       p.help &&
       (groupFilter === "all" ||
-        scopedDocs.some(
-          (d) =>
-            d.studentId === p.id &&
-            (p.help?.docId === undefined || p.help.docId === d.id),
-        )),
+        scopedDocs.some((d) => d.studentId === p.id && p.help?.docId === d.id)),
   ).length;
   const visible = docs.filter(
     (d) =>
@@ -97,10 +99,7 @@ export function Teacher({
           feedback.some((f) => f.docId === d.id && f.response === "revised")) ||
         (statusFilter === "help" &&
           participants.some(
-            (p) =>
-              p.id === d.studentId &&
-              p.help &&
-              (p.help.docId === undefined || p.help.docId === d.id),
+            (p) => p.id === d.studentId && p.help && p.help.docId === d.id,
           ))),
   );
   const unstarted = participants.filter(
@@ -108,7 +107,14 @@ export function Teacher({
   );
   const waiting =
     groupFilter === "all" && ["all", "unstarted", "help"].includes(statusFilter)
-      ? unstarted.filter((p) => statusFilter !== "help" || p.help)
+      ? participants.filter(
+          (p) =>
+            (!docs.some((d) => d.studentId === p.id) ||
+              (statusFilter !== "unstarted" &&
+                p.help &&
+                p.help.docId === undefined)) &&
+            (statusFilter !== "help" || p.help),
+        )
       : [];
   const ordered = sort
     ? [...visible].sort((a, b) => a.name.localeCompare(b.name, "ko"))
@@ -276,10 +282,16 @@ export function Teacher({
               key={`participant-${p.id}`}
             >
               <h3>{p.name}</h3>
-              <p>현재 원고가 없어요.</p>
-              <span className="meta">
-                생각을 정리하거나 첫 글을 준비하는 중이에요.
-              </span>
+              {docs.some((d) => d.studentId === p.id) ? (
+                <p>게시판에서 도움을 요청했어요.</p>
+              ) : (
+                <>
+                  <p>현재 원고가 없어요.</p>
+                  <span className="meta">
+                    생각을 정리하거나 첫 글을 준비하는 중이에요.
+                  </span>
+                </>
+              )}
               {p.help && (
                 <TeacherHelp
                   participant={p}
@@ -315,7 +327,8 @@ export function Teacher({
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <strong>{doc.name}</strong>
-                  {participants.find((p) => p.id === doc.studentId)?.help && (
+                  {participants.find((p) => p.id === doc.studentId)?.help
+                    ?.docId === doc.id && (
                     <span className="help-badge">도움 요청</span>
                   )}
                   {unreadMessages(
@@ -503,7 +516,7 @@ function Detail({
             onReadMessages={onReadMessages}
           />
         )}
-        {participant?.help && (
+        {participant?.help?.docId === doc.id && (
           <TeacherHelp
             participant={participant}
             groups={groups}

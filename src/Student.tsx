@@ -6,6 +6,7 @@ import {
   type HelpRequest,
   type Participant,
   type StudentDoc,
+  DOCUMENT_TITLE_MAX_LENGTH,
   charCount,
 } from "./data";
 import { Button } from "./ui";
@@ -14,8 +15,7 @@ import { FeedbackCards } from "./FeedbackSurface";
 import { HelpButton } from "./HelpRequest";
 import { LessonMaterials, SourceFields } from "./GroupLearning";
 import { publicationState } from "./learning";
-import { useLive } from "./collaboration";
-import { MessageButton, type MessageActions } from "./TeacherMessages";
+import { MessageButton, unreadMessages, type MessageActions } from "./TeacherMessages";
 
 export function WritingPage({
   doc,
@@ -60,8 +60,7 @@ export function WritingPage({
   notifyFeedback?: boolean;
   presenceLabel?: string;
 } & MessageActions) {
-  const live = useLive();
-  const dock = useRef<HTMLDivElement>(null);
+  const unread = unreadMessages(participant, doc.id, "student").length;
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const feedbackWasOpen = useRef(false);
   useEffect(() => {
@@ -88,23 +87,6 @@ export function WritingPage({
       : state === "changed"
         ? "수정한 글 게시하기"
         : "게시하기";
-  useEffect(() => {
-    // Follow the visible viewport when the on-screen keyboard opens.
-    const viewport = window.visualViewport;
-    const place = () => {
-      if (dock.current)
-        dock.current.style.bottom = `${(live || isStudent ? 0 : 58) + Math.max(0, window.innerHeight - (viewport ? viewport.height + viewport.offsetTop : window.innerHeight))}px`;
-    };
-    place();
-    viewport?.addEventListener("resize", place);
-    viewport?.addEventListener("scroll", place);
-    window.addEventListener("resize", place);
-    return () => {
-      viewport?.removeEventListener("resize", place);
-      viewport?.removeEventListener("scroll", place);
-      window.removeEventListener("resize", place);
-    };
-  }, [isStudent, live]);
   return (
     <main className="writing-page page-width">
       <div className="writing-page-header">
@@ -126,7 +108,71 @@ export function WritingPage({
             </small>
           )}
         </span>
+        <div className="writing-header-actions">
+          {feedback.length > 0 && (
+            <Button
+              className="feedback-toggle-button"
+              aria-expanded={feedbackOpen}
+              aria-controls="writing-feedback-panel"
+              onClick={() => setFeedbackOpen(!feedbackOpen)}
+            >
+              <MessageSquare size={17} />
+              피드백 {notifyFeedback ? feedback.length : ""}
+            </Button>
+          )}
+          <Button
+            variant="primary"
+            onClick={onPublish}
+            disabled={
+              !connected ||
+              publishBusy ||
+              !doc.title.trim() ||
+              doc.title.length > DOCUMENT_TITLE_MAX_LENGTH ||
+              charCount(doc) === 0 ||
+              state === "current" ||
+              saveState === "error"
+            }
+          >
+            {state === "current" ? <Check size={17} /> : <Send size={17} />}
+            {publishBusy ? "게시하는 중…" : publishLabel}
+          </Button>
+        </div>
       </div>
+      <div className={`writing-publication-status publication-${state}`} role="status">
+        {state === "private"
+          ? "아직 나와 선생님만 보는 글"
+          : state === "changed"
+            ? "게시판에는 고치기 전 글이 보여요"
+            : "친구들도 지금 글을 볼 수 있어요"}
+        {(!doc.title.trim() || charCount(doc) === 0) && (
+          <span> · 제목과 본문을 쓰면 올릴 수 있어요.</span>
+        )}
+      </div>
+      {isStudent && (
+        <details className="writing-contact-menu">
+          <summary>
+            도움·메시지
+            {unread > 0 && <span className="count-tag">새 답장 {unread}</span>}
+          </summary>
+          <div className="writing-contact-actions">
+            <HelpButton
+              participant={participant}
+              groups={groups}
+              doc={doc}
+              onRequest={onRequestHelp}
+              connected={connected}
+              label="선생님께 도움 요청"
+            />
+            <MessageButton
+              participant={participant}
+              doc={doc}
+              connected={connected}
+              onSendMessage={onSendMessage}
+              onReadMessages={onReadMessages}
+            />
+          </div>
+        </details>
+      )}
       <div className="writing-group-context">
         <span className="eyebrow">내 글의 주제</span>
         <strong>{group.title}</strong>
@@ -140,7 +186,7 @@ export function WritingPage({
             수업 도움 보기{" "}
             <span>
               {[
-                group.resources?.length ? "선생님 자료" : "",
+                group.resources?.length ? "추가자료" : "",
                 group.questions?.length ? "생각 질문" : "수업 안내",
               ]
                 .filter(Boolean)
@@ -214,73 +260,6 @@ export function WritingPage({
             피드백은 나와 선생님만 볼 수 있어요.
           </div>
         </aside>
-      </div>
-      <div className={`writing-action-dock publication-${state}`} ref={dock}>
-        <div className="publication-status" role="status">
-          <span className={saveState === "error" ? "field-error" : ""}>
-            {saveLabel}
-          </span>
-          <strong>
-            {state === "private"
-              ? "아직 나와 선생님만 보는 글"
-              : state === "changed"
-                ? "게시판에는 고치기 전 글이 보여요"
-                : "친구들도 지금 글을 볼 수 있어요"}
-          </strong>
-        </div>
-        <div className="writing-dock-buttons">
-          {isStudent && (
-            <HelpButton
-              participant={participant}
-              groups={groups}
-              doc={doc}
-              onRequest={onRequestHelp}
-              connected={connected}
-              label="선생님께 도움 요청"
-            />
-          )}
-          {isStudent && (
-            <MessageButton
-              participant={participant}
-              doc={doc}
-              connected={connected}
-              onSendMessage={onSendMessage}
-              onReadMessages={onReadMessages}
-            />
-          )}
-          {feedback.length > 0 && (
-            <Button
-              className="feedback-dock-button"
-              aria-expanded={feedbackOpen}
-              onClick={() => {
-                setFeedbackOpen(!feedbackOpen);
-              }}
-            >
-              <MessageSquare size={17} />
-              피드백 {notifyFeedback ? feedback.length : ""}
-            </Button>
-          )}
-          <Button
-            variant="primary"
-            onClick={onPublish}
-            disabled={
-              !connected ||
-              publishBusy ||
-              !doc.title.trim() ||
-              charCount(doc) === 0 ||
-              state === "current" ||
-              saveState === "error"
-            }
-          >
-            {state === "current" ? <Check size={17} /> : <Send size={17} />}
-            {publishBusy ? "게시하는 중…" : publishLabel}
-          </Button>
-        </div>
-        {(!doc.title.trim() || charCount(doc) === 0) && (
-          <span className="publish-hint">
-            제목과 본문을 쓰면 올릴 수 있어요.
-          </span>
-        )}
       </div>
     </main>
   );

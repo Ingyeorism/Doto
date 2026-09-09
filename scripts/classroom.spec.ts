@@ -1,6 +1,171 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 
+test("글별 도움 팝업과 삭제 동기화, 새로고침 및 게시판 피드백", async ({
+  browser,
+}, testInfo) => {
+  const tc = await browser.newContext(),
+    ac = await browser.newContext(),
+    bc = await browser.newContext();
+  try {
+    const t = await tc.newPage(),
+      a = await ac.newPage(),
+      b = await bc.newPage();
+    await t.goto("/teacher/start");
+    await t.locator(".th-entry-host").click();
+    await t
+      .getByRole("button", { name: "방 열고 코드 받기", exact: true })
+      .click();
+    await t.getByRole("button", { name: "학생용 QR", exact: true }).click();
+    const code = (await t.locator(".large-code").innerText()).trim();
+    await t.getByRole("button", { name: "닫기", exact: true }).click();
+    await t.getByRole("button", { name: "전체 글", exact: true }).click();
+    for (const [p, name] of [
+      [a, "도움학생"],
+      [b, "다른학생"],
+    ] as const) {
+      await p.goto("/student/join");
+      await p.getByLabel("입장 코드", { exact: true }).fill(code);
+      await p.getByLabel("이름 또는 별명").fill(name);
+      await p.getByRole("button", { name: "방 입장하기", exact: true }).click();
+      await expect(p.locator(".live-app")).toHaveAttribute(
+        "data-connection-status",
+        "connected",
+      );
+    }
+    const write = async (title: string) => {
+      await a.locator(".group-add").first().click();
+      await a.getByLabel("글 제목", { exact: true }).fill(title);
+      await a.locator(".tiptap").fill("처음 쓴 문장입니다.");
+      await expect(
+        t.locator(".student-card").filter({ hasText: title }),
+      ).toContainText("처음 쓴 문장입니다.");
+    };
+    await write("첫 번째 글");
+    const draftUrl = a.url();
+    await a.getByRole("button", { name: "게시판으로", exact: true }).click();
+    await expect(
+      a.getByRole("region", { name: "내가 쓰던 글", exact: true }),
+    ).toContainText("첫 번째 글");
+    await expect(
+      b.getByRole("region", { name: "내가 쓰던 글", exact: true }),
+    ).toHaveCount(0);
+    await a.reload();
+    await a
+      .getByRole("region", { name: "내가 쓰던 글", exact: true })
+      .getByRole("button", { name: /첫 번째 글/ })
+      .click();
+    await expect(a).toHaveURL(draftUrl);
+    await expect(a.locator(".tiptap")).toHaveText("처음 쓴 문장입니다.");
+    await a.goBack();
+    await a
+      .getByRole("region", { name: "내가 쓰던 글", exact: true })
+      .getByRole("button", { name: /첫 번째 글/ })
+      .click();
+    await expect(a).toHaveURL(draftUrl);
+    await expect(t.locator(".card-prose")).toHaveCount(1);
+    await expect(a.locator(".live-app")).toHaveAttribute(
+      "data-connection-status",
+      "connected",
+    );
+    await a.getByRole("button", { name: "게시하기", exact: true }).click();
+    await write("도움받을 글");
+    await a.locator(".writing-contact-menu > summary").click();
+    await a
+      .getByRole("button", { name: "선생님께 도움 요청", exact: true })
+      .click();
+    await a
+      .getByLabel("덧붙일 말 · 선택")
+      .fill("이 글의 마지막 문장이 어려워요.");
+    await a
+      .getByRole("button", { name: "선생님께 요청하기", exact: true })
+      .click();
+    await expect(t.locator(".help-notification")).toContainText("도움학생");
+    await expect(t.locator(".help-notification")).toContainText("도움받을 글");
+    await t.screenshot({
+      path: testInfo.outputPath("help-popup.png"),
+      fullPage: true,
+    });
+    await expect(
+      t
+        .locator(".student-card")
+        .filter({ hasText: "첫 번째 글" })
+        .locator(".help-badge"),
+    ).toHaveCount(0);
+    await expect(
+      t
+        .locator(".student-card")
+        .filter({ hasText: "도움받을 글" })
+        .locator(".help-badge"),
+    ).toHaveText("도움 요청");
+    await t
+      .getByRole("button", { name: "요청한 글 보기", exact: true })
+      .click();
+    await expect(t.locator(".teacher-help-request")).toContainText(
+      "이 글의 마지막 문장이 어려워요.",
+    );
+    await a.getByRole("button", { name: "실행 취소", exact: true }).click();
+    await expect(a.locator(".tiptap")).toHaveText("");
+    await expect(t.locator(".detail-panel .tiptap")).toHaveText("");
+    await expect(
+      t.locator(".student-card").filter({ hasText: "도움받을 글" }),
+    ).not.toContainText("처음 쓴 문장입니다.");
+    await a.getByRole("button", { name: "다시 실행", exact: true }).click();
+    await expect(t.locator(".detail-panel .tiptap")).toHaveText(
+      "처음 쓴 문장입니다.",
+    );
+    await a.locator(".tiptap").fill("");
+    await expect(t.locator(".detail-panel .tiptap")).toHaveText("");
+    await expect(
+      t.locator(".student-card").filter({ hasText: "도움받을 글" }),
+    ).not.toContainText("처음 쓴 문장입니다.");
+    await a.locator(".tiptap").fill("새로 쓴 마지막 문장입니다.");
+    await t
+      .getByRole("button", { name: "요청 확인 완료", exact: true })
+      .click();
+    await t.getByLabel("피드백 메시지").fill("마지막 장면을 잘 표현했어요.");
+    await t
+      .locator(".feedback-composer")
+      .getByRole("button", { name: "보내기", exact: true })
+      .click();
+    await expect(
+      t.getByText("피드백을 남겼어요.", { exact: true }),
+    ).toBeVisible();
+    await t.reload();
+    await expect(t.locator(".detail-panel .feedback-card")).toContainText(
+      "마지막 장면을 잘 표현했어요.",
+    );
+    await expect(a.locator(".live-app")).toHaveAttribute(
+      "data-connection-status",
+      "connected",
+    );
+    await a.getByRole("button", { name: "게시하기", exact: true }).click();
+    await a.getByText("도움받을 글", { exact: true }).click();
+    await expect(a.locator(".board-private-feedback")).toContainText(
+      "마지막 장면을 잘 표현했어요.",
+    );
+    await b.getByText("도움받을 글", { exact: true }).click();
+    await expect(b.locator(".board-private-feedback")).toHaveCount(0);
+    await expect(
+      b.getByText("마지막 장면을 잘 표현했어요.", { exact: true }),
+    ).toHaveCount(0);
+    await t
+      .locator(".product-tabs")
+      .getByRole("button", { name: /^게시판/ })
+      .click();
+    await t.getByText("도움받을 글", { exact: true }).click();
+    await expect(t.locator(".board-private-feedback")).toContainText(
+      "마지막 장면을 잘 표현했어요.",
+    );
+    await t.screenshot({
+      path: testInfo.outputPath("feedback-board.png"),
+      fullPage: true,
+    });
+  } finally {
+    await Promise.all([tc.close(), ac.close(), bc.close()]);
+  }
+});
+
 test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수업 보관", async ({
   browser,
 }, testInfo) => {
@@ -49,16 +214,24 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
       getRandomValues: "function",
     });
   }
-  await t.locator(".teacher-entry").click();
+  await t.locator(".th-entry-host").click();
+  await t
+    .getByRole("button", { name: "방 열고 코드 받기", exact: true })
+    .click();
+  await t.getByRole("button", { name: "학생용 QR", exact: true }).click();
   const code = (await t.locator(".large-code").innerText()).trim();
   await expect(t.getByAltText("학생 입장 QR 코드")).toBeVisible();
   await t.getByRole("button", { name: "닫기", exact: true }).click();
+  await t.getByRole("button", { name: "전체 글", exact: true }).click();
   const join = async (p: Page, name: string) => {
     await p.goto("/student/join");
     await p.getByLabel("입장 코드", { exact: true }).fill(code);
     await p.getByLabel("이름 또는 별명").fill(name);
-    await p.getByRole("button", { name: "들어가기", exact: true }).click();
-    await expect(p.getByText("선생님과 연결됨", { exact: true })).toBeVisible();
+    await p.getByRole("button", { name: "방 입장하기", exact: true }).click();
+    await expect(p.locator(".live-app")).toHaveAttribute(
+      "data-connection-status",
+      "connected",
+    );
   };
   await join(a, "하늘");
   await join(b, "지우");
@@ -121,6 +294,7 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
     "margin-bottom",
     "0px",
   );
+  await a.locator(".writing-contact-menu > summary").click();
   await a
     .getByRole("button", { name: "선생님께 도움 요청", exact: true })
     .click();
@@ -150,7 +324,7 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
       exact: true,
     }),
   ).toBeVisible();
-  await t.getByText("하늘의 비공개 원고", { exact: true }).click();
+  await t.getByRole("button", { name: "요청한 글 보기", exact: true }).click();
   await expect(t.locator(".teacher-help-request")).toContainText(
     "어떤 장면을 더 쓰면 좋을까요?",
   );
@@ -209,6 +383,7 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
   await t.getByRole("button", { name: "피드백 남기기", exact: true }).click();
   await expect(a.locator(".feedback-highlight")).toHaveCount(1);
   // Boundary insertions stay outside the teacher's range.
+  await a.locator(".tiptap").click();
   await a.locator(".tiptap").press("ControlOrMeta+Home");
   await a.locator(".tiptap").pressSequentially("먼저 ");
   await expect(a.locator(".feedback-highlight")).toHaveText("오늘 학교");
@@ -231,14 +406,26 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
     .poll(async () => (await a.locator(".tiptap").innerText()).trim())
     .toBe((await t.locator(".tiptap").innerText()).trim());
   // Replace precisely the highlighted range, then undo/redo from the student.
-  await a.locator(".tiptap").focus();
-  await a.locator(".feedback-highlight").evaluate((el) => {
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    const s = window.getSelection()!;
-    s.removeAllRanges();
-    s.addRange(range);
-  });
+  await a.locator(".tiptap").click();
+  await expect(async () => {
+    await a.locator(".feedback-highlight").evaluate((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const selection = window.getSelection()!;
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+    // Let the editor's deferred focus/selection update settle before typing.
+    await a.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    );
+    expect(await a.evaluate(() => window.getSelection()?.toString())).toBe(
+      "오늘 학교",
+    );
+  }).toPass({ timeout: 15000 });
   await a.keyboard.type("새로운 문장");
   await expect(a.locator(".feedback-highlight")).toHaveCount(0);
   await expect(t.locator(".feedback-highlight")).toHaveCount(0);
@@ -298,6 +485,7 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
     "true",
   );
   await a.getByRole("button", { name: "내 글 수정", exact: true }).click();
+  await a.locator(".writing-contact-menu > summary").click();
   await a.getByRole("button", { name: "메시지 보내기", exact: true }).click();
   await expect(a.locator(".message-history")).toContainText("비공개질문");
   await expect(a.locator(".message-history")).toContainText("비공개답장");
@@ -313,7 +501,10 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
     fullPage: true,
   });
   await a.setViewportSize({ width: 1440, height: 1000 });
-  await expect(a.getByText("선생님과 연결됨", { exact: true })).toBeVisible();
+  await expect(a.locator(".live-app")).toHaveAttribute(
+    "data-connection-status",
+    "connected",
+  );
   await t
     .locator(".product-tabs")
     .getByRole("button", { name: "전체 글", exact: true })
@@ -343,8 +534,11 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
   expect(JSON.stringify(await stored(b))).not.toContain("비공개답장");
   expect((await stored(a))[0].lesson.board.docs).toHaveLength(1);
   expect((await stored(b))[0].lesson.board.docs).toHaveLength(1);
-  await t.getByRole("button", { name: "수업 종료", exact: true }).click();
   await t.getByRole("button", { name: "수업 마치기", exact: true }).click();
+  await t
+    .getByRole("dialog")
+    .getByRole("button", { name: "수업 마치기", exact: true })
+    .click();
   await expect(t.locator(".history-card")).toHaveCount(1);
   const download = t.waitForEvent("download");
   await t.getByRole("button", { name: "결과 내보내기", exact: true }).click();
@@ -359,12 +553,13 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
     }),
   ).toBeVisible();
   await t.getByRole("button", { name: "다시 수업 열기", exact: true }).click();
+  await t.getByRole("button", { name: "학생용 QR", exact: true }).click();
   await expect(t.locator(".large-code")).not.toHaveText(code);
   const nextCode = (await t.locator(".large-code").innerText()).trim();
   await a.goto("/student/join");
   await a.getByLabel("입장 코드", { exact: true }).fill(nextCode);
   await a.getByLabel("이름 또는 별명").fill("하늘");
-  await a.getByRole("button", { name: "들어가기", exact: true }).click();
+  await a.getByRole("button", { name: "방 입장하기", exact: true }).click();
   await expect(
     a.getByText("하늘의 비공개 원고", { exact: true }),
   ).toBeVisible();
