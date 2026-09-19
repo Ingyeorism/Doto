@@ -28,6 +28,14 @@ test("진단: 후보가 offer보다 먼저 와도 연결하고 끊김을 서버�
     };
   });
   await studentContext.addInitScript(() => {
+    const NativeSocket = WebSocket;
+    (window as any).__sockets = [];
+    window.WebSocket = class extends NativeSocket {
+      constructor(url: string | URL, protocols?: string | string[]) {
+        super(url, protocols);
+        (window as any).__sockets.push(this);
+      }
+    };
     const Native = RTCPeerConnection;
     (window as any).__pcs = [];
     (window as any).__iceAdded = 0;
@@ -69,6 +77,7 @@ test("진단: 후보가 offer보다 먼저 와도 연결하고 끊김을 서버�
     const code = (await teacher.locator(".large-code").innerText()).trim();
     await student.goto("/student/join");
     await student.getByLabel("입장 코드", { exact: true }).fill(code);
+    await student.getByLabel("출석 번호", { exact: true }).fill("7");
     await student.getByLabel("이름 또는 별명").fill("로그비공개이름");
     await student
       .getByRole("button", { name: "방 입장하기", exact: true })
@@ -111,9 +120,10 @@ test("진단: 후보가 offer보다 먼저 와도 연결하고 끊김을 서버�
       Object.defineProperty(pc, "connectionState", { get: () => "failed" });
       pc.dispatchEvent(new Event("connectionstatechange"));
     });
-    await expect(
-      student.getByRole("button", { name: "다시 연결", exact: true }),
-    ).toBeVisible();
+    await expect(student.locator(".live-app")).toHaveAttribute(
+      "data-connection-status",
+      "connected",
+    );
     await expect
       .poll(async () => {
         const raw = await readFile(
@@ -132,6 +142,13 @@ test("진단: 후보가 offer보다 먼저 와도 연결하고 끊김을 서버�
           );
       })
       .toBe(true);
+    await studentContext.setOffline(true);
+    await student.evaluate(() =>
+      (window as any).__sockets.forEach((s: WebSocket) => s.close()),
+    );
+    await expect(
+      student.getByRole("button", { name: "진단 로그 저장", exact: true }),
+    ).toBeVisible();
     const downloaded = student.waitForEvent("download");
     await student
       .getByRole("button", { name: "진단 로그 저장", exact: true })
@@ -142,9 +159,7 @@ test("진단: 후보가 offer보다 먼저 와도 연결하고 끊김을 서버�
     expect(exported).not.toContain("candidate:");
     expect(exported).not.toContain('"sdp"');
     expect(exported).not.toContain('"token"');
-    await student
-      .getByRole("button", { name: "다시 연결", exact: true })
-      .click();
+    await studentContext.setOffline(false);
     await expect(student.locator(".live-app")).toHaveAttribute(
       "data-connection-status",
       "connected",
@@ -205,7 +220,7 @@ test("진단 업로드 실패 기록은 같은 탭 새로고침 후 재전송", 
     .toBe(0);
 });
 
-test("연결 제안이 도착하지 않으면 20초 대기 초과를 기록", async ({
+test("연결 제안이 도착하지 않으면 자동 중계로 같은 수업에 연결", async ({
   browser,
 }) => {
   const teacherContext = await browser.newContext();
@@ -237,6 +252,7 @@ test("연결 제안이 도착하지 않으면 20초 대기 초과를 기록", as
     await student.clock.install();
     await student.goto("/student/join");
     await student.getByLabel("입장 코드", { exact: true }).fill(code);
+    await student.getByLabel("출석 번호", { exact: true }).fill("7");
     await student.getByLabel("이름 또는 별명").fill("대기검사");
     await student
       .getByRole("button", { name: "방 입장하기", exact: true })
@@ -270,15 +286,16 @@ test("연결 제안이 도착하지 않으면 20초 대기 초과를 기록", as
         { timeout: 10000 },
       )
       .toBe(true);
-    await student.clock.fastForward(21000);
-    await expect(
-      student.getByRole("button", { name: "다시 연결", exact: true }),
-    ).toBeVisible();
+    await student.clock.fastForward(8500);
+    await expect(student.locator(".live-app")).toHaveAttribute(
+      "data-connection-status",
+      "connected",
+    );
     await student.clock.runFor(200);
     expect(
       await student.evaluate(() =>
         JSON.parse(sessionStorage.getItem("doto.diagnostics.v1")!).history.some(
-          (e: any) => e.event === "join.timeout" && e.durationMs === 20000,
+          (e: any) => e.event === "signal.send" && e.messageType === "fallback",
         ),
       ),
     ).toBe(true);

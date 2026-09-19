@@ -28,6 +28,7 @@ test("약관 읽기는 선택: 모바일에서 닫아도 입력과 입장 버튼
   expect(await acknowledgement(page)).toBeNull();
 
   await page.goto("/student/join?code=123456");
+  await page.getByLabel("출석 번호", { exact: true }).fill("7");
   await page.getByLabel("이름 또는 별명").fill("도토별명");
   const enter = page.getByRole("button", { name: "방 입장하기", exact: true });
   await expect(enter).toBeEnabled();
@@ -106,6 +107,7 @@ test("약관을 열지 않고 방 생성·QR 학생 입장·교사 입장 시 �
     ).replace(/\s/g, "");
 
     await student.goto(`/join?code=${code}`);
+    await student.getByLabel("출석 번호", { exact: true }).fill("7");
     await student.getByLabel("이름 또는 별명").fill("동의별명");
     await expect(student.getByRole("dialog")).toHaveCount(0);
     await student.getByLabel("이름 또는 별명").press("Enter");

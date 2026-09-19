@@ -26,6 +26,7 @@ test("글별 도움 팝업과 삭제 동기화, 새로고침 및 게시판 피�
     ] as const) {
       await p.goto("/student/join");
       await p.getByLabel("입장 코드", { exact: true }).fill(code);
+      await p.getByLabel("출석 번호", { exact: true }).fill("7");
       await p.getByLabel("이름 또는 별명").fill(name);
       await p.getByRole("button", { name: "방 입장하기", exact: true }).click();
       await expect(p.locator(".live-app")).toHaveAttribute(
@@ -173,6 +174,14 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
     ac = await browser.newContext(),
     bc = await browser.newContext();
   await ac.addInitScript(() => {
+    const NativeSocket = WebSocket;
+    (window as any).__sockets = [];
+    window.WebSocket = class extends NativeSocket {
+      constructor(url: string | URL, protocols?: string | string[]) {
+        super(url, protocols);
+        (window as any).__sockets.push(this);
+      }
+    };
     const Native = window.RTCPeerConnection;
     (window as any).__pcs = [];
     window.RTCPeerConnection = class extends Native {
@@ -226,6 +235,7 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
   const join = async (p: Page, name: string) => {
     await p.goto("/student/join");
     await p.getByLabel("입장 코드", { exact: true }).fill(code);
+    await p.getByLabel("출석 번호", { exact: true }).fill("7");
     await p.getByLabel("이름 또는 별명").fill(name);
     await p.getByRole("button", { name: "방 입장하기", exact: true }).click();
     await expect(p.locator(".live-app")).toHaveAttribute(
@@ -240,7 +250,7 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
     await p.locator(".group-add").first().click();
     await p.getByLabel("글 제목", { exact: true }).fill(title);
     await p.locator(".tiptap").fill(body);
-    await expect(p.locator(".writing-save")).toContainText("이 기기에 저장됨");
+    await expect(p.locator(".writing-save")).toHaveText("");
   };
   await write(
     a,
@@ -388,10 +398,12 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
   await a.locator(".tiptap").pressSequentially("먼저 ");
   await expect(a.locator(".feedback-highlight")).toHaveText("오늘 학교");
   await expect(t.locator(".feedback-highlight")).toHaveText("오늘 학교");
-  // Cut the direct connection, independently edit both copies, then merge.
-  await a.evaluate(() =>
-    (window as any).__pcs.forEach((p: RTCPeerConnection) => p.close()),
-  );
+  // Take both transports offline, independently edit both copies, then merge.
+  await ac.setOffline(true);
+  await a.evaluate(() => {
+    (window as any).__sockets.forEach((s: WebSocket) => s.close());
+    (window as any).__pcs.forEach((p: RTCPeerConnection) => p.close());
+  });
   await expect(
     a.getByRole("button", { name: "다시 연결", exact: true }),
   ).toBeVisible();
@@ -399,7 +411,7 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
   await a.keyboard.type(" 학생의 오프라인 생각.");
   await t.locator(".tiptap").press("ControlOrMeta+End");
   await t.keyboard.type(" 교사의 별도 도움.");
-  await a.getByRole("button", { name: "다시 연결", exact: true }).click();
+  await ac.setOffline(false);
   await expect(a.locator(".tiptap")).toContainText("교사의 별도 도움.");
   await expect(t.locator(".tiptap")).toContainText("학생의 오프라인 생각.");
   await expect
@@ -558,6 +570,7 @@ test("교사와 두 학생: 비공개 협업, 게시와 댓글, 재입장, 수�
   const nextCode = (await t.locator(".large-code").innerText()).trim();
   await a.goto("/student/join");
   await a.getByLabel("입장 코드", { exact: true }).fill(nextCode);
+  await a.getByLabel("출석 번호", { exact: true }).fill("7");
   await a.getByLabel("이름 또는 별명").fill("하늘");
   await a.getByRole("button", { name: "방 입장하기", exact: true }).click();
   await expect(

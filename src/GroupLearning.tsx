@@ -312,6 +312,7 @@ export function LessonMaterials({ group }: { group: BoardGroup }) {
             <>
               <button
                 className="resource-image-button"
+                data-guide-target={`resource:${r.id}`}
                 type="button"
                 onClick={() => setOpenImage(openImage === r.id ? null : r.id)}
                 aria-expanded={openImage === r.id}

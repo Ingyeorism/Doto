@@ -5,9 +5,11 @@ services:
     restart: unless-stopped
     volumes:
       - doto_logs:/app/logs
+      - doto_data:/app/data
     environment:
       PUBLIC_URL: https://${DOMAIN:?Set DOMAIN in .env}
       STUN_URLS: ${STUN_URLS:-stun:stun.l.google.com:19302}
+      DOTO_ADMIN_TOKEN: ${DOTO_ADMIN_TOKEN:-}
   https:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -24,5 +26,6 @@ services:
       - caddy_config:/config
 volumes:
   doto_logs:
+  doto_data:
   certificates:
   caddy_config:

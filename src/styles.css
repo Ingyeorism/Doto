@@ -512,6 +512,153 @@ button:disabled:hover {
   gap: 24px;
   margin: 24px 32px 0;
 }
+.topic-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid #c9d8c8;
+  border-radius: 12px;
+  background: #eef4e9;
+}
+.topic-filters strong {
+  font-size: 13px;
+  margin-right: 6px;
+}
+.topic-filters button {
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid #c9d8c8;
+  background: white;
+  color: #315b45;
+}
+.topic-filters button[aria-pressed="true"] {
+  background: #315b45;
+  color: white;
+}
+.topic-filters label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  margin-left: auto;
+}
+.overview-topic {
+  margin-bottom: 30px;
+  scroll-margin-top: 100px;
+}
+.overview-topic-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  margin: 0 0 12px;
+  border-bottom: 2px solid #dce5d3;
+  font-size: 17px;
+}
+.overview-topic-heading span {
+  font-size: 12px;
+  color: #74816f;
+  font-weight: 400;
+}
+.server-status {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 20px;
+  margin: 0 auto 24px;
+  max-width: 760px;
+  text-align: left;
+  background: #f0f5ed;
+  border: 1px solid #d5e1cf;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.server-status small {
+  font-size: 11px;
+  color: #66715f;
+  line-height: 1.5;
+}
+.server-status.busy {
+  background: #fff7e2;
+  border-color: #e9d191;
+}
+.server-status.overloaded,
+.server-status.unavailable {
+  background: #fff0ea;
+  border-color: #e5b6a4;
+}
+.server-admin {
+  padding: 32px 24px;
+  max-width: 920px;
+}
+.server-admin h1 {
+  margin: 20px 0;
+}
+.server-admin p {
+  margin: 18px 0;
+  line-height: 1.7;
+}
+.server-admin > form {
+  margin-top: 24px;
+}
+.server-tuning-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+.server-admin-metrics {
+  margin-top: 24px;
+  background: #eef4e9;
+  border-radius: 12px;
+  padding: 20px;
+}
+.button-guide-menu {
+  position: fixed;
+  z-index: 3000;
+  background: white;
+  border: 1px solid #c9d8c8;
+  border-radius: 10px;
+  padding: 5px;
+  box-shadow: 0 6px 24px #23382230;
+}
+.button-guide-menu button {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  padding: 12px 18px;
+  color: #315b45;
+  font-weight: 700;
+}
+.button-guide-menu button:hover {
+  background: #eef4e9;
+}
+@keyframes teacher-button-pulse {
+  0%,
+  100% {
+    outline: 3px solid #d49229;
+    box-shadow: 0 0 0 4px #f4c85b44;
+  }
+  50% {
+    outline: 3px solid #f2b833;
+    box-shadow: 0 0 0 10px #f4c85b66;
+    background-color: #fff1be;
+  }
+}
+.teacher-button-highlight {
+  animation: teacher-button-pulse 1s ease-in-out 3;
+  position: relative;
+  z-index: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .teacher-button-highlight {
+    animation: none;
+    outline: 4px solid #d49229;
+    box-shadow: 0 0 0 6px #f4c85b44;
+  }
+}
 .teacher-layout.has-detail {
   grid-template-columns: minmax(0, 1fr) 370px;
 }
@@ -4812,46 +4959,186 @@ button:disabled:hover {
 }
 
 /* Connected classroom uses the approved UI without the prototype dock. */
-.live-app { padding-bottom: 0; }
+.live-app {
+  padding-bottom: 0;
+}
 
-.connection-banner { display:flex; align-items:center; justify-content:center; gap:16px; padding:12px 20px; background:#f5efdc; color:#655631; font-size:14px; }
-.paper-kicker .teacher-presence { color:#315b45; font-weight:700; }
-.paper-kicker > span:first-child { min-height:24px; line-height:18px; white-space:nowrap; }
-.live-app .storage-warning { display:flex; align-items:center; justify-content:center; gap:12px; }
-.invite-url { max-width:100%; overflow-wrap:anywhere; color:#315b45; font-size:13px; }
-.fresh-join { display:flex; align-items:center; gap:10px; margin:6px 0 20px; font-size:14px; cursor:pointer; min-height:44px; }
-.fresh-join input { width:18px; height:18px; accent-color:#315b45; }
-.live-app .board-comment { position:relative; }
-.live-app .history-actions { flex-wrap:wrap; }
-.live-app .card-prose { content-visibility:auto; contain-intrinsic-size:auto 260px; }
-.remote-teacher-caret { border-left:2px solid #a3653e; position:relative; pointer-events:none; }
-.remote-teacher-caret::after { content:'선생님'; position:absolute; bottom:1.2em; left:-2px; background:#a3653e; color:white; font-size:10px; line-height:1.5; padding:0 3px; white-space:nowrap; }
+.connection-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: #f5efdc;
+  color: #655631;
+  font-size: 14px;
+}
+.paper-kicker .teacher-presence {
+  color: #315b45;
+  font-weight: 700;
+}
+.paper-kicker > span:first-child {
+  min-height: 24px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.live-app .storage-warning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.invite-url {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: #315b45;
+  font-size: 13px;
+}
+.fresh-join {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 20px;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 44px;
+}
+.fresh-join input {
+  width: 18px;
+  height: 18px;
+  accent-color: #315b45;
+}
+.live-app .board-comment {
+  position: relative;
+}
+.live-app .history-actions {
+  flex-wrap: wrap;
+}
+.live-app .card-prose {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 260px;
+}
+.remote-teacher-caret {
+  border-left: 2px solid #a3653e;
+  position: relative;
+  pointer-events: none;
+}
+.remote-teacher-caret::after {
+  content: "선생님";
+  position: absolute;
+  bottom: 1.2em;
+  left: -2px;
+  background: #a3653e;
+  color: white;
+  font-size: 10px;
+  line-height: 1.5;
+  padding: 0 3px;
+  white-space: nowrap;
+}
 
 /* One manuscript layout for typing, overview, comparison and published cards. */
-.app .tiptap, .app .document-body { line-height:1.6; overflow-wrap:anywhere; }
-.app .tiptap p, .app .document-body p {
-  margin-top:0;
-  margin-bottom:0;
-  line-height:inherit;
-  font-size:inherit;
-  white-space:pre-wrap;
+.app .tiptap,
+.app .document-body {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
-.app .document-body p:empty::before { content:'\200b'; }
-.post-body { font-family:var(--serif); font-size:16px; cursor:pointer; }
-.post-body.is-collapsed { max-height:13em; overflow:hidden; }
-.post-body.is-expanded { max-height:none; }
-.post-body .source-list { cursor:default; }
-.group-post .post-expand { margin:8px 12px; min-height:44px; }
-.post-open { padding-bottom:10px; }
-.teacher-messages { padding:16px; border:1px solid #dce3d3; background:#f9fbf6; border-radius:12px; margin-bottom:16px; }
-.teacher-messages h3 { display:flex; align-items:center; gap:8px; margin:0 0 8px; font-size:16px; }
-.message-history { max-height:300px; overflow:auto; overscroll-behavior:contain; padding:4px 0; margin:12px 0; }
-.private-message { background:#e9efdf; padding:12px; border-radius:12px; margin:0 20px 10px 0; font-size:14px; }
-.private-message.from-me { margin:0 0 10px 20px; background:#f3eadc; }
-.private-message p { white-space:pre-wrap; overflow-wrap:anywhere; margin:6px 0; line-height:1.6; }
-.private-message small { color:#737961; font-size:11px; }
-.teacher-messages textarea { width:100%; }
-@media(max-width:700px){.live-app .header-actions .header-connected{display:none}.live-app .header-actions .btn{font-size:12px;padding:8px}.live-app .history-card{flex-wrap:wrap}.connection-banner{flex-wrap:wrap;text-align:center}.live-app .class-title{max-width:35vw}}
+.app .tiptap p,
+.app .document-body p {
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: inherit;
+  font-size: inherit;
+  white-space: pre-wrap;
+}
+.app .document-body p:empty::before {
+  content: "\200b";
+}
+.post-body {
+  font-family: var(--serif);
+  font-size: 16px;
+  cursor: pointer;
+}
+.post-body.is-collapsed {
+  max-height: 13em;
+  overflow: hidden;
+}
+.post-body.is-expanded {
+  max-height: none;
+}
+.post-body .source-list {
+  cursor: default;
+}
+.group-post .post-expand {
+  margin: 8px 12px;
+  min-height: 44px;
+}
+.post-open {
+  padding-bottom: 10px;
+}
+.teacher-messages {
+  padding: 16px;
+  border: 1px solid #dce3d3;
+  background: #f9fbf6;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+.teacher-messages h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+.message-history {
+  max-height: 300px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 4px 0;
+  margin: 12px 0;
+}
+.private-message {
+  background: #e9efdf;
+  padding: 12px;
+  border-radius: 12px;
+  margin: 0 20px 10px 0;
+  font-size: 14px;
+}
+.private-message.from-me {
+  margin: 0 0 10px 20px;
+  background: #f3eadc;
+}
+.private-message p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 6px 0;
+  line-height: 1.6;
+}
+.private-message small {
+  color: #737961;
+  font-size: 11px;
+}
+.teacher-messages textarea {
+  width: 100%;
+}
+@media (max-width: 700px) {
+  .live-app .header-actions .header-connected {
+    display: none;
+  }
+  .live-app .header-actions .btn {
+    font-size: 12px;
+    padding: 8px;
+  }
+  .live-app .history-card {
+    flex-wrap: wrap;
+  }
+  .connection-banner {
+    flex-wrap: wrap;
+    text-align: center;
+  }
+  .live-app .class-title {
+    max-width: 35vw;
+  }
+}
 .help-notifications {
   position: fixed;
   right: 20px;
@@ -4890,9 +5177,19 @@ button:disabled:hover {
   border: 1px solid #cbd6c4;
   border-radius: 14px;
 }
-.my-drafts h2 { margin: 0; font-size: 18px; }
-.my-drafts > p { color: var(--muted); line-height: 1.6; }
-.my-draft-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 10px; }
+.my-drafts h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.my-drafts > p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.my-draft-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 10px;
+}
 .my-draft-list > button {
   display: flex;
   align-items: center;
@@ -4904,6 +5201,15 @@ button:disabled:hover {
   background: var(--paper);
   text-align: left;
 }
-.my-draft-list strong, .my-draft-list small { display: block; overflow-wrap: anywhere; }
-.my-draft-list small { margin-bottom: 5px; color: var(--muted); }
-.my-draft-list .text-link { flex-shrink: 0; }
+.my-draft-list strong,
+.my-draft-list small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.my-draft-list small {
+  margin-bottom: 5px;
+  color: var(--muted);
+}
+.my-draft-list .text-link {
+  flex-shrink: 0;
+}

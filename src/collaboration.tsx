@@ -7,6 +7,7 @@ import {
 } from "@tiptap/y-tiptap";
 import type { FeedbackAnchor, FeedbackSelection } from "./data";
 import { writingSchema } from "./editor-schema";
+import type { Guidance } from "./ButtonGuidance";
 
 export const toBase64 = (bytes: Uint8Array) => {
   let s = "";
@@ -91,6 +92,7 @@ export function resolveAnchors(
   });
 }
 export const LiveContext = createContext<{
+  guidance?: Guidance;
   getDoc: (id: number) => Y.Doc | undefined;
   presence: (
     id: number,

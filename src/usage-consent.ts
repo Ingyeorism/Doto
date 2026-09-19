@@ -1,4 +1,4 @@
-export const USAGE_TERMS_VERSION = "2026-09-09";
+export const USAGE_TERMS_VERSION = "2026-09-19";
 
 // A local acknowledgement of the button action, not verified guardian consent.
 // Keep only the latest acknowledgement; never include names or room codes.

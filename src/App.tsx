@@ -35,6 +35,7 @@ import { RoomStart, RoomSetup, HostRoom, DimScreen } from "./RoomScreens";
 import { useHostDevice } from "./use-host-device";
 import { UsageConsentNotice } from "./UsageConsent";
 import { recordUsageConsent } from "./usage-consent";
+import { ServerStatus } from "./ServerStatus";
 
 const classroom = new Classroom();
 const routeFromUrl = () => {
@@ -84,7 +85,8 @@ export default function App() {
     history.pushState(null, "", path);
     setRoute({ role, page, host, docId: docId ?? NaN });
     setDialog(null);
-    window.scrollTo(0, 0);
+    if (!(page === "overview" && route.page === "overview"))
+      window.scrollTo(0, 0);
   };
   useEffect(() => {
     const initial = routeFromUrl();
@@ -170,6 +172,10 @@ export default function App() {
       presence: classroom.presence,
       clearPresence: classroom.clearPresence,
       rebaseAnchors: classroom.rebaseAnchors,
+      guidance: {
+        subscribe: classroom.subscribeGuide,
+        highlight: classroom.highlight,
+      },
     }),
     [],
   );
@@ -463,10 +469,10 @@ export default function App() {
               busy={busy}
               onBack={() => go("start", "teacher")}
               current={session?.role === "student" ? session.name : undefined}
-              onJoin={(code, name, fresh) =>
+              onJoin={(code, name, fresh, attendanceNumber) =>
                 void run(async () => {
                   recordUsageConsent("join");
-                  await classroom.join(code, name, fresh);
+                  await classroom.join(code, name, fresh, attendanceNumber);
                   const role = classroom.state.session!.role;
                   go(role === "teacher" ? "overview" : "board", role);
                 })
@@ -568,6 +574,7 @@ export default function App() {
           )}
           {page === "overview" && teacher && b && (
             <Teacher
+              preferenceKey={lesson!.id}
               selectedDocId={Number.isFinite(route.docId) ? route.docId : null}
               onSelectDoc={(id) => go("overview", "teacher", id ?? undefined)}
               {...messageActions}
@@ -1020,22 +1027,30 @@ function Join({
 }: {
   busy: boolean;
   current?: string;
-  onJoin: (code: string, name: string, fresh: boolean) => void;
+  onJoin: (
+    code: string,
+    name: string,
+    fresh: boolean,
+    attendanceNumber?: number,
+  ) => void;
   onBack: () => void;
 }) {
   const [code, setCode] = useState(
-    new URLSearchParams(location.search).get("code") || "",
+    (new URLSearchParams(location.search).get("code") || "").replace(/\D/g, ""),
   );
   const [name, setName] = useState(current || "");
   const [fresh, setFresh] = useState(false);
-  const codeLength = code.replace(/^\*/, "").length;
-  const validCode = /^\*?(?:\d{6}|\d{8})$/.test(code);
+  const [attendanceNumber, setAttendanceNumber] = useState("");
+  const validNumber = /^[1-9]\d{0,3}$/.test(attendanceNumber);
+  const codeLength = code.length;
+  const validCode = /^(?:\d{6}|\d{8})$/.test(code);
   return (
     <main className="th-join-page">
       <Button variant="ghost" className="th-back" onClick={onBack}>
         시작으로
       </Button>
       <div className="th-paper th-join-card">
+        <ServerStatus />
         <span className="join-icon">
           <DoorOpen size={30} />
         </span>
@@ -1049,24 +1064,31 @@ function Join({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onJoin(code, name.trim(), fresh);
+            if (
+              !validCode ||
+              (codeLength === 6 && (!validNumber || !name.trim()))
+            )
+              return;
+            onJoin(
+              code,
+              name.trim(),
+              fresh,
+              codeLength === 6 ? Number(attendanceNumber) : undefined,
+            );
           }}
         >
           <label className="field">
             입장 코드
             <input
               className="code-input"
-              inputMode="tel"
-              pattern={"\\*?[0-9]{6}([0-9]{2})?"}
-              maxLength={9}
+              inputMode="numeric"
+              pattern={"[0-9]{6}([0-9]{2})?"}
+              maxLength={8}
               placeholder="입장코드를 입력해 주세요"
               value={code}
               onChange={(e) => {
                 const value = e.target.value.trimStart();
-                setCode(
-                  (value.startsWith("*") ? "*" : "") +
-                    value.replace(/\D/g, "").slice(0, 8),
-                );
+                setCode(value.replace(/\D/g, "").slice(0, 8));
               }}
               required
               autoComplete="off"
@@ -1074,6 +1096,21 @@ function Join({
           </label>
           {codeLength === 6 && (
             <>
+              <label className="field">
+                출석 번호
+                <input
+                  inputMode="numeric"
+                  pattern="[1-9][0-9]{0,3}"
+                  maxLength={4}
+                  placeholder="예: 7"
+                  value={attendanceNumber}
+                  required
+                  autoComplete="off"
+                  onChange={(e) =>
+                    setAttendanceNumber(e.target.value.replace(/\D/g, ""))
+                  }
+                />
+              </label>
               <label className="field">
                 이름 또는 별명
                 <input
@@ -1101,7 +1138,11 @@ function Join({
             type="submit"
             className="full-width"
             aria-describedby="join-usage-consent"
-            disabled={busy || !validCode || (codeLength === 6 && !name.trim())}
+            disabled={
+              busy ||
+              !validCode ||
+              (codeLength === 6 && (!name.trim() || !validNumber))
+            }
           >
             {busy ? "연결하는 중…" : "방 입장하기"}
             <ArrowRight size={17} />

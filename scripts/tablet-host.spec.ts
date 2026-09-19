@@ -100,11 +100,13 @@ for (const relay of [false, true]) {
       expect(teacherCode).toMatch(/^\d{8}$/);
       const join = async (page: Page, entryCode: string, name?: string) => {
         await page.goto("/student/join");
-        await page
-          .getByLabel("입장 코드", { exact: true })
-          .fill((relay && page !== b ? "*" : "") + entryCode);
-        if (name) await page.getByLabel("이름 또는 별명").fill(name);
-        else await expect(page.getByLabel("이름 또는 별명")).toHaveCount(0);
+        await page.getByLabel("입장 코드", { exact: true }).fill(entryCode);
+        if (name) {
+          await page
+            .getByLabel("출석 번호", { exact: true })
+            .fill(page === a ? "12" : "3");
+          await page.getByLabel("이름 또는 별명").fill(name);
+        } else await expect(page.getByLabel("이름 또는 별명")).toHaveCount(0);
         await page
           .getByRole("button", { name: "방 입장하기", exact: true })
           .click();
@@ -258,10 +260,9 @@ for (const relay of [false, true]) {
         await connected(pc);
         expect(
           await pc.evaluate(
-            () =>
-              JSON.parse(sessionStorage.getItem("doto.active-session")!).relay,
+            () => JSON.parse(sessionStorage.getItem("doto.active-session")!).id,
           ),
-        ).toBe(true);
+        ).toBe(firstTeacherId);
         await expect(
           pc.locator(".student-card").filter({ hasText: "강우의 비공개 초안" }),
         ).toContainText("교사 PC에서 함께 고친 원고.");
@@ -325,8 +326,12 @@ for (const relay of [false, true]) {
         "PC 퇴장 후에도 계속 쓰는 원고.",
       );
       if (!relay) {
-        expect(signalFrames.join("")).not.toContain("호스트 비밀 원고");
-        expect(signalFrames.join("")).not.toContain("강우에게만 보이는 피드백");
+        const signalingOnly = signalFrames
+          .filter((raw) => JSON.parse(raw).type !== "relay")
+          .join("");
+        // Leaving/restarting a device can legitimately trigger automatic fallback.
+        expect(signalingOnly).not.toContain("호스트 비밀 원고");
+        expect(signalingOnly).not.toContain("강우에게만 보이는 피드백");
       } else {
         expect(signalFrames.join("")).toContain("강우에게만 보이는 피드백");
         const logs = await readFile(

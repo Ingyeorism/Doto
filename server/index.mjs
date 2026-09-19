@@ -6,6 +6,7 @@ import { randomBytes, randomInt, randomUUID } from "node:crypto";
 import { WebSocketServer, WebSocket } from "ws";
 import { createDiagnostics } from "./diagnostics.mjs";
 import { closeRelay, renewRelay, forwardRelay } from "./relay.mjs";
+import { createLoadMonitor } from "./load.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const diagnostics = createDiagnostics(root);
@@ -14,6 +15,9 @@ const dev = process.argv.includes("--dev");
 const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || "0.0.0.0";
 const rooms = new Map();
+const wss = new WebSocketServer({ noServer: true, maxPayload: 128 * 1024 });
+const validAttendance = (value) =>
+  Number.isInteger(value) && value >= 1 && value <= 9999;
 const token = () => randomBytes(32).toString("hex");
 const roomByCode = (code) =>
   [...rooms.values()].find((r) => r.code === code || r.teacherCode === code);
@@ -33,9 +37,11 @@ const announcePeer = (room, p) =>
     type: "peer",
     id: p.id,
     name: p.name,
+    attendanceNumber: p.attendanceNumber,
     token: p.token,
     role: p.id < -1 ? "teacher" : "student",
     relayId: p.relayId,
+    generation: p.generation,
   });
 const rejectionReasons = new Map([
   ["입장 코드를 확인해 주세요. 수업이 끝났을 수도 있어요.", "invalid-code"],
@@ -54,6 +60,34 @@ const rejectionReasons = new Map([
 const send = (ws, value) => {
   if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(value));
 };
+const loadMonitor = await createLoadMonitor({
+  file: resolve(
+    root,
+    process.env.DOTO_TUNING_FILE || "data/server-tuning.json",
+  ),
+  adminToken: process.env.DOTO_ADMIN_TOKEN,
+  clients: () => wss.clients,
+  counts: () => {
+    const active = Array.from(wss.clients).filter(
+      (ws) =>
+        ws.readyState === WebSocket.OPEN &&
+        rooms.get(ws.room?.id) === ws.room &&
+        ws.room &&
+        (ws.room.teacher === ws || ws.student?.ws === ws),
+    );
+    return {
+      connections: active.length,
+      students: active.filter((ws) => ws.student?.id > 0).length,
+      teachers: active.filter(
+        (ws) => ws.room.teacher === ws || ws.student?.id < -1,
+      ).length,
+      rooms: rooms.size,
+      relayConnections: active.filter(
+        (ws) => ws.student?.relayState === "ready",
+      ).length,
+    };
+  },
+});
 const vite = dev
   ? await (
       await import("vite")
@@ -70,6 +104,13 @@ const mime = {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
   if (url.pathname === "/api/diagnostics") return diagnostics.ingest(req, res);
+  if (url.pathname === "/api/admin/server")
+    return loadMonitor.handleAdmin(req, res);
+  if (url.pathname === "/api/status") {
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Cache-Control", "no-store");
+    return res.end(JSON.stringify(loadMonitor.publicStatus()));
+  }
   if (url.pathname === "/api/health") {
     res.setHeader("Content-Type", "application/json");
     res.setHeader("Cache-Control", "no-store");
@@ -92,6 +133,7 @@ const server = http.createServer(async (req, res) => {
         stun: (process.env.STUN_URLS || "stun:stun.l.google.com:19302")
           .split(",")
           .filter((s) => /^stun:/.test(s)),
+        updateDelayMs: loadMonitor.publicStatus().updateDelayMs,
       }),
     );
   }
@@ -122,7 +164,6 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-const wss = new WebSocketServer({ noServer: true, maxPayload: 128 * 1024 });
 server.on("upgrade", (req, socket, head) => {
   if (new URL(req.url, "http://localhost").pathname !== "/signal")
     return socket.destroy();
@@ -145,6 +186,7 @@ function endRoom(room, reason = "ended") {
   for (const p of roomPeers(room)) send(p.ws, { type: "ended" });
 }
 wss.on("connection", (ws) => {
+  loadMonitor.trackSocket(ws);
   ws.connectionId = randomUUID();
   const context = () => ({
     peerConnectionId: ws.connectionId,
@@ -237,6 +279,9 @@ wss.on("connection", (ws) => {
                 id: p.id,
                 token: p.token,
                 name: p.name.slice(0, 40),
+                attendanceNumber: validAttendance(p.attendanceNumber)
+                  ? p.attendanceNumber
+                  : undefined,
               });
           }
           for (const p of (Array.isArray(m.controllers)
@@ -276,9 +321,10 @@ wss.on("connection", (ws) => {
         });
         for (const p of roomPeers(room))
           if (p.ws?.readyState === WebSocket.OPEN) {
+            p.generation = randomUUID();
             renewRelay(room, p);
             announcePeer(room, p);
-            send(p.ws, { type: "teacher-ready" });
+            send(p.ws, { type: "teacher-ready", generation: p.generation });
           }
       } else if (m.type === "join") {
         if (ws.room) throw Error("이미 수업에 연결되어 있어요.");
@@ -309,6 +355,8 @@ wss.on("connection", (ws) => {
           } else {
             if (typeof m.name !== "string" || !m.name.trim())
               throw Error("이름을 적어 주세요.");
+            if (!validAttendance(m.attendanceNumber))
+              throw Error("출석 번호를 1~9999 사이로 적어 주세요.");
             const name = m.name.trim().slice(0, 16);
             const count = [...room.students.values()].filter(
               (p) =>
@@ -324,13 +372,18 @@ wss.on("connection", (ws) => {
               id,
               name: count ? `${name} (${count + 1})` : name,
               baseName: name,
+              attendanceNumber: m.attendanceNumber,
               token: token(),
             };
             room.students.set(p.id, p);
           }
         }
         closeRelay(room, p);
-        p.relay = m.relay === true;
+        // Transport is negotiated per connection, never part of room identity.
+        p.relay = false;
+        p.generation = randomUUID();
+        if (p.id > 0 && validAttendance(m.attendanceNumber))
+          p.attendanceNumber = m.attendanceNumber;
         renewRelay(room, p);
         if (p.ws && p.ws !== ws) {
           send(p.ws, { type: "replaced" });
@@ -351,9 +404,11 @@ wss.on("connection", (ws) => {
           code: room.code,
           id: p.id,
           name: p.name,
+          attendanceNumber: p.attendanceNumber,
           token: p.token,
           role: p.id < -1 ? "teacher" : "student",
           relay: p.relay,
+          generation: p.generation,
           teacherOnline: room.teacher?.readyState === WebSocket.OPEN,
         });
         announcePeer(room, p);
@@ -361,9 +416,37 @@ wss.on("connection", (ws) => {
         const room = ws.room;
         if (!room || rooms.get(room.id) !== room)
           throw Error("수업에 다시 연결해 주세요.");
-        if (m.type === "relay") {
+        if (m.type === "fallback") {
+          const p =
+            room.teacher === ws
+              ? room.students.get(m.to) || room.controllers.get(m.to)
+              : ws.student?.ws === ws
+                ? ws.student
+                : null;
+          if (!p || (room.teacher !== ws && m.to !== -1))
+            throw Error("허용되지 않은 요청이에요.");
+          if (
+            m.generation !== p.generation ||
+            p.ws?.readyState !== WebSocket.OPEN ||
+            room.teacher?.readyState !== WebSocket.OPEN
+          )
+            return reply({ ok: false });
+          // Simultaneous failure reports must not replace an active relay route.
+          if (!p.relayId) {
+            p.relay = true;
+            renewRelay(room, p);
+            announcePeer(room, p);
+          }
+          reply({ ok: true });
+        } else if (m.type === "relay") {
           forwardRelay(room, ws, m);
         } else if (m.type === "signal") {
+          const p =
+            room.teacher === ws
+              ? room.students.get(m.to) || room.controllers.get(m.to)
+              : ws.student;
+          if (m.generation !== p?.generation) return;
+          if (p?.relay) return; // Ignore late ICE/SDP from the abandoned attempt.
           // The direct-connection signaling path still accepts only SDP and ICE.
           const data = m.description
             ? {
@@ -423,16 +506,23 @@ wss.on("connection", (ws) => {
             send((room.students.get(m.to) || room.controllers.get(m.to))?.ws, {
               type: "signal",
               from: "teacher",
+              generation: p.generation,
               ...data,
             });
           else if (ws.student?.ws === ws)
             send(room.teacher, {
               type: "signal",
               from: ws.student.id,
+              generation: p.generation,
               ...data,
             });
         } else if (m.type === "retry" && ws.role === "student") {
           if (ws.student?.ws !== ws) throw Error("허용되지 않은 요청이에요.");
+          ws.student.generation = randomUUID();
+          send(ws, {
+            type: "teacher-ready",
+            generation: ws.student.generation,
+          });
           renewRelay(room, ws.student);
           announcePeer(room, ws.student);
         } else if (m.type === "rotate-teacher-code" && room.teacher === ws) {
@@ -506,6 +596,7 @@ server.listen(port, host, () =>
   console.log(`도토: http://localhost:${port}/teacher/start`),
 );
 async function shutdown() {
+  loadMonitor.close();
   log("server.stopping", {});
   clearInterval(heartbeat);
   for (const ws of wss.clients) ws.terminate();

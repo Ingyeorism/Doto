@@ -1,0 +1,44 @@
+{
+  "eventsPerSecond": 5,
+  "durationSeconds": 60,
+  "students": 30,
+  "caveats": [
+    "Synthetic continuous single-character Yjs edits; excludes initial sync, TLS/WebSocket framing, snapshots, presence and diagnostic traffic.",
+    "Direct WebRTC edits do not traverse the central relay. CPU and hosting cost reductions are not measured.",
+    "Publish, page exit and save deadlines may flush batches early."
+  ],
+  "rows": [
+    {
+      "delayMs": 0,
+      "messagesPerStudent": 300,
+      "messagesPerClass": 9000,
+      "relayJsonBytesPerClassOneDirectionWithAck": 2651280,
+      "messageReductionPercent": 0,
+      "jsonByteReductionPercent": 0
+    },
+    {
+      "delayMs": 120,
+      "messagesPerStudent": 300,
+      "messagesPerClass": 9000,
+      "relayJsonBytesPerClassOneDirectionWithAck": 2651280,
+      "messageReductionPercent": 0,
+      "jsonByteReductionPercent": 0
+    },
+    {
+      "delayMs": 500,
+      "messagesPerStudent": 100,
+      "messagesPerClass": 3000,
+      "relayJsonBytesPerClassOneDirectionWithAck": 963480,
+      "messageReductionPercent": 66.7,
+      "jsonByteReductionPercent": 63.7
+    },
+    {
+      "delayMs": 1200,
+      "messagesPerStudent": 50,
+      "messagesPerClass": 1500,
+      "relayJsonBytesPerClassOneDirectionWithAck": 544920,
+      "messageReductionPercent": 83.3,
+      "jsonByteReductionPercent": 79.4
+    }
+  ]
+}

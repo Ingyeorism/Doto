@@ -15,7 +15,11 @@ import { FeedbackCards } from "./FeedbackSurface";
 import { HelpButton } from "./HelpRequest";
 import { LessonMaterials, SourceFields } from "./GroupLearning";
 import { publicationState } from "./learning";
-import { MessageButton, unreadMessages, type MessageActions } from "./TeacherMessages";
+import {
+  MessageButton,
+  unreadMessages,
+  type MessageActions,
+} from "./TeacherMessages";
 
 export function WritingPage({
   doc,
@@ -26,7 +30,6 @@ export function WritingPage({
   onBack,
   post,
   saveState,
-  savedAt,
   participant,
   groups,
   isStudent,
@@ -75,12 +78,7 @@ export function WritingPage({
     feedbackWasOpen.current = feedbackOpen;
   }, [feedbackOpen]);
   const state = publicationState(doc, post);
-  const saveLabel =
-    saveState === "error"
-      ? "저장하지 못했어요"
-      : saveState === "saving"
-        ? "저장 중…"
-        : "이 기기에 저장됨";
+  const saveLabel = saveState === "error" ? "저장하지 못했어요" : "";
   const publishLabel =
     state === "current"
       ? "게시한 글과 같아요"
@@ -97,16 +95,6 @@ export function WritingPage({
         <span className="writing-save" role="status">
           {saveLabel}
           {!connected && " · 선생님께 아직 전달되지 않은 내용이 있을 수 있어요"}
-          {saveState === "saved" && savedAt && (
-            <small>
-              {" "}
-              ·{" "}
-              {new Date(savedAt).toLocaleTimeString("ko-KR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </small>
-          )}
         </span>
         <div className="writing-header-actions">
           {feedback.length > 0 && (
@@ -126,9 +114,8 @@ export function WritingPage({
             disabled={
               !connected ||
               publishBusy ||
-              !doc.title.trim() ||
+              (!doc.title.trim() && charCount(doc) === 0) ||
               doc.title.length > DOCUMENT_TITLE_MAX_LENGTH ||
-              charCount(doc) === 0 ||
               state === "current" ||
               saveState === "error"
             }
@@ -138,14 +125,17 @@ export function WritingPage({
           </Button>
         </div>
       </div>
-      <div className={`writing-publication-status publication-${state}`} role="status">
+      <div
+        className={`writing-publication-status publication-${state}`}
+        role="status"
+      >
         {state === "private"
           ? "아직 나와 선생님만 보는 글"
           : state === "changed"
             ? "게시판에는 고치기 전 글이 보여요"
             : "친구들도 지금 글을 볼 수 있어요"}
-        {(!doc.title.trim() || charCount(doc) === 0) && (
-          <span> · 제목과 본문을 쓰면 올릴 수 있어요.</span>
+        {!doc.title.trim() && charCount(doc) === 0 && (
+          <span> · 제목이나 본문을 쓰면 올릴 수 있어요.</span>
         )}
       </div>
       {isStudent && (

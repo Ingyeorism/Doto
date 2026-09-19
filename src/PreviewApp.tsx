@@ -573,7 +573,7 @@ export default function App({
   const toggle = (key: keyof typeof settings) =>
     setSettings((s) => ({ ...s, [key]: !s[key] }));
   const publish = () => {
-    if (!writingDoc || !writingDoc.title.trim() || charCount(writingDoc) === 0)
+    if (!writingDoc || (!writingDoc.title.trim() && charCount(writingDoc) === 0))
       return;
     const snapshot = {
       ...writingDoc,

@@ -21,6 +21,7 @@ import { UsageConsentNotice, UsageTermsLink } from "./UsageConsent";
 import type { ClassroomState } from "./classroom";
 import type { useHostDevice } from "./use-host-device";
 import "./tablet-host-preview.css";
+import { ServerStatus } from "./ServerStatus";
 
 export const formattedCode = (code: string) =>
   `${code.slice(0, code.length / 2)} ${code.slice(code.length / 2)}`;
@@ -92,6 +93,7 @@ export function RoomStart({
 }) {
   return (
     <main className="th-start">
+      <ServerStatus />
       <div className="th-start-heading">
         <span className="eyebrow">
           <Sprout size={16} />
@@ -239,7 +241,10 @@ export function RoomSetup({
               </span>
             </div>
           </div>
-          <UsageConsentNotice id="create-usage-consent" action="방 열고 코드 받기" />
+          <UsageConsentNotice
+            id="create-usage-consent"
+            action="방 열고 코드 받기"
+          />
           <Button
             variant="primary"
             type="submit"
@@ -378,11 +383,7 @@ export function HostRoom({
           <span>
             글 저장
             <strong>
-              {state.saveState === "saved"
-                ? "전달받은 글 저장됨"
-                : state.saveState === "saving"
-                  ? "저장 중…"
-                  : "저장 확인 필요"}
+              {state.saveState === "error" ? "저장 확인 필요" : "자동 저장"}
             </strong>
           </span>
         </div>

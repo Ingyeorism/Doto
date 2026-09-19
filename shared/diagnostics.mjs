@@ -52,6 +52,7 @@ const enums = {
     "ended",
     "replaced",
     "retry",
+    "fallback",
     "lock",
     "end",
     "action",

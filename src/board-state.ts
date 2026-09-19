@@ -6,7 +6,7 @@ import type {
   StudentDoc,
   Participant,
 } from "./data";
-import { createUuid } from "./uuid";
+import { createUuid } from "./uuid.ts";
 
 export const TRASH_DAYS = 30;
 const RETENTION_MS = TRASH_DAYS * 24 * 60 * 60 * 1000;

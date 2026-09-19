@@ -102,7 +102,7 @@ export function WritingEditor({
     shouldRerenderOnTransaction: true,
     editorProps: {
       handleScrollToSelection: (view) => {
-        if (compact || !view.editable) return false;
+        if (compact || !view.editable) return true;
         const rect = view.coordsAtPos(view.state.selection.head);
         const viewport = window.visualViewport;
         const top = (viewport?.offsetTop ?? 0) + 90;
@@ -121,12 +121,14 @@ export function WritingEditor({
         spellcheck: "false",
       },
     },
-    onUpdate: ({ editor: current }) =>
+    onUpdate: ({ editor: current }) => {
+      if (ydoc) return;
       callbacks.current.onUpdate({
         html: current.getHTML(),
         anchors: feedbackKey.getState(current.state)?.anchors ?? [],
         paragraphs: current.getText({ blockSeparator: "\n" }).split("\n"),
-      }),
+      });
+    },
     onSelectionUpdate: ({ editor: current }) => {
       if (callbacks.current.onCreateFeedback && !pendingRef.current) {
         const { from, to } = current.state.selection;
@@ -147,7 +149,7 @@ export function WritingEditor({
               Math.min(rect.bottom + 8, window.innerHeight - 54),
             ),
           });
-        } else setSelectionMenu(null);
+        }
       }
       if (live && feedbackRole === "teacher") {
         const { from, to } = current.state.selection;
@@ -207,7 +209,24 @@ export function WritingEditor({
           if (anchors.length) live.rebaseAnchors(doc.id, anchors);
         });
       if (!transaction.docChanged) return;
-      setSelectionMenu(null);
+      // Keep the menu anchored while the student continues typing. A remote
+      // transaction may collapse the browser selection, but not its Yjs range.
+      setSelectionMenu((menu) => {
+        if (!menu) return null;
+        const range = menu.range;
+        const resolved =
+          ydoc && range.relativeFrom
+            ? resolveAnchors(
+                ydoc,
+                [{ ...range, feedbackId: -1, status: "active" }],
+                ySyncPluginKey.getState(current.state)?.binding.mapping,
+              )[0]
+            : null;
+        const from = resolved?.from ?? transaction.mapping.map(range.from, 1);
+        const to = resolved?.to ?? transaction.mapping.map(range.to, -1);
+        if (from >= to || resolved?.status === "deleted") return null;
+        return { ...menu, range: { ...range, from, to } };
+      });
       const range = pendingRef.current;
       if (range) {
         const resolved =
@@ -261,24 +280,40 @@ export function WritingEditor({
     }
   }, [editor, doc.anchors]);
   useEffect(() => {
-    const hide = () => setSelectionMenu(null);
+    const reposition = () =>
+      setSelectionMenu((menu) => {
+        if (!menu || !editor || editor.isDestroyed) return menu;
+        try {
+          const rect = editor.view.coordsAtPos(menu.range.to);
+          return {
+            ...menu,
+            left: Math.max(12, Math.min(rect.left, window.innerWidth - 160)),
+            top: Math.max(
+              12,
+              Math.min(rect.bottom + 8, window.innerHeight - 54),
+            ),
+          };
+        } catch {
+          return null;
+        }
+      });
     const escape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        hide();
+        setSelectionMenu(null);
         pendingRef.current = null;
         setPending(null);
         setMessage("");
       }
     };
-    window.addEventListener("scroll", hide, true);
-    window.addEventListener("resize", hide);
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
     document.addEventListener("keydown", escape);
     return () => {
-      window.removeEventListener("scroll", hide, true);
-      window.removeEventListener("resize", hide);
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
       document.removeEventListener("keydown", escape);
     };
-  }, []);
+  }, [editor]);
   if (!editor) return null;
   const tool = (
     label: string,
@@ -316,6 +351,10 @@ export function WritingEditor({
   return (
     <div
       className={`writing-editor ${compact ? "compact-editor" : ""} ${readOnly ? "reader-editor" : ""}`}
+      onPointerDown={(e) => {
+        if ((e.target as Element).closest(".tiptap, .document-title-input"))
+          setSelectionMenu(null);
+      }}
     >
       {!readOnly && (
         <div className="editor-toolbar" role="toolbar" aria-label="글쓰기 도구">
@@ -585,14 +624,18 @@ export function WritingEditor({
                 titleComposing.current = false;
                 setComposingTitle(null);
                 onUpdate({
-                  title: e.currentTarget.value.slice(0, DOCUMENT_TITLE_MAX_LENGTH),
+                  title: e.currentTarget.value.slice(
+                    0,
+                    DOCUMENT_TITLE_MAX_LENGTH,
+                  ),
                 });
               }}
               onChange={(e) => {
                 if (titleComposing.current) setComposingTitle(e.target.value);
-                else onUpdate({
-                  title: e.target.value.slice(0, DOCUMENT_TITLE_MAX_LENGTH),
-                });
+                else
+                  onUpdate({
+                    title: e.target.value.slice(0, DOCUMENT_TITLE_MAX_LENGTH),
+                  });
               }}
             />
             <div
@@ -602,7 +645,8 @@ export function WritingEditor({
               {doc.title.length > DOCUMENT_TITLE_MAX_LENGTH
                 ? `제목을 ${DOCUMENT_TITLE_MAX_LENGTH}자 이내로 줄여 주세요. `
                 : ""}
-              {(composingTitle ?? doc.title).length}/{DOCUMENT_TITLE_MAX_LENGTH}자
+              {(composingTitle ?? doc.title).length}/{DOCUMENT_TITLE_MAX_LENGTH}
+              자
             </div>
           </>
         )}
@@ -680,7 +724,7 @@ export function WritingEditor({
       )}
       <div className="editor-bottom">
         <span>
-          <span className="mini-dot" />
+          {(readOnly || saveLabel) && <span className="mini-dot" />}
           {readOnly ? "현재 원고" : (saveLabel ?? "작성 중")}
         </span>
         <span>{editor.getText().replace(/\s/g, "").length}자 · 공백 제외</span>

@@ -5,6 +5,7 @@ import PreviewApp from "./PreviewApp";
 import TabletHostPreview from "./TabletHostPreview";
 import "./styles.css";
 import { startDiagnostics } from "./diagnostics";
+import { ServerAdmin } from "./ServerStatus";
 
 if (
   !new URLSearchParams(location.search).has("simulation") &&
@@ -16,7 +17,9 @@ if (
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    {new URLSearchParams(location.search).get("preview") === "tablet" ? (
+    {location.pathname === "/admin/server" ? (
+      <ServerAdmin />
+    ) : new URLSearchParams(location.search).get("preview") === "tablet" ? (
       <TabletHostPreview />
     ) : new URLSearchParams(location.search).has("simulation") ||
       new URLSearchParams(location.search).get("preview") === "1" ? (

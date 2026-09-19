@@ -41,6 +41,7 @@ export interface HelpRequest {
 export interface Participant {
   id: number;
   name: string;
+  attendanceNumber?: number;
   joinedAt: number;
   connected: boolean;
   help?: HelpRequest;

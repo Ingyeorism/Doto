@@ -15,16 +15,16 @@ async function client() {
 try {
   for (let i=0;i<30;i++) { try { if ((await fetch(`http://127.0.0.1:${port}/api/health`)).ok) break; } catch {} await new Promise(r=>setTimeout(r,100)); }
   const t=await client(); const lessonId=randomUUID(); const room=await t.request({type:'create',lessonId}); assert.match(room.code,/^\d{6}$/);
-  const a=await client(); const first=await a.request({type:'join',code:room.code,name:'같은이름'});
-  const b=await client(); const second=await b.request({type:'join',code:room.code,name:'같은이름'});
+  const a=await client(); const first=await a.request({type:'join',attendanceNumber:7,code:room.code,name:'같은이름'});
+  const b=await client(); const second=await b.request({type:'join',attendanceNumber:7,code:room.code,name:'같은이름'});
   assert.notEqual(first.id,second.id); assert.notEqual(first.name,second.name);
   assert.ok((await a.request({type:'lock',locked:true})).error);
   assert.ok((await a.request({type:'document-update',text:'not-a-signaling-message'})).error);
   const impostor=await client(); assert.ok((await impostor.request({type:'create',lessonId})).error);
   await t.request({type:'lock',locked:true});
-  const fresh=await client(); assert.ok((await fresh.request({type:'join',code:room.code,name:'새친구'})).error);
+  const fresh=await client(); assert.ok((await fresh.request({type:'join',attendanceNumber:7,code:room.code,name:'새친구'})).error);
   a.ws.close(); await once(a.ws,'close');
-  const returning=await client(); const resumed=await returning.request({type:'join',code:room.code,name:'가짜이름',token:first.token});
+  const returning=await client(); const resumed=await returning.request({type:'join',attendanceNumber:7,code:room.code,name:'가짜이름',token:first.token});
   assert.equal(resumed.id,first.id); assert.equal(resumed.name,first.name);
   t.ws.close(); await once(t.ws,'close');
   const teacher=await client(); const restored=await teacher.request({type:'create',lessonId,token:room.token});

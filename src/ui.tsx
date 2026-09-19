@@ -84,11 +84,13 @@ export function Modal({
   children,
   onClose,
   wide = false,
+  closeGuideTarget,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
   wide?: boolean;
+  closeGuideTarget?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -109,7 +111,7 @@ export function Modal({
     >
       <div className="modal-head">
         <h2 id={titleId}>{title}</h2>
-        <IconButton label="닫기" onClick={onClose}>
+        <IconButton label="닫기" data-guide-target={closeGuideTarget} onClick={onClose}>
           <X size={21} />
         </IconButton>
       </div>

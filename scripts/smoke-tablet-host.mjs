@@ -67,9 +67,14 @@ try {
     (await student.request({ type: "lookup", code: room.code })).role,
     "student",
   );
-  const teacher = await pc.request({ type: "join", code: room.teacherCode });
+  const teacher = await pc.request({
+    type: "join",
+    attendanceNumber: 7,
+    code: room.teacherCode,
+  });
   const child = await student.request({
     type: "join",
+    attendanceNumber: 7,
     code: room.code,
     name: "이강우",
     role: "teacher",
@@ -81,6 +86,35 @@ try {
   assert.ok(child.id > 0);
   assert.equal(child.teacherCode, undefined);
   assert.equal(teacher.code, room.code);
+  assert.equal(child.attendanceNumber, 7);
+  assert.equal(child.relay, false);
+  assert.ok(
+    (
+      await host.request({
+        type: "fallback",
+        to: child.id,
+        generation: child.generation,
+      })
+    ).ok,
+  );
+  const route = host.events
+    .filter((m) => m.type === "peer" && m.id === child.id)
+    .at(-1).relayId;
+  assert.ok(route);
+  assert.ok(
+    (
+      await student.request({
+        type: "fallback",
+        to: -1,
+        generation: child.generation,
+      })
+    ).ok,
+  );
+  assert.equal(
+    host.events.filter((m) => m.type === "peer" && m.id === child.id).at(-1)
+      .relayId,
+    route,
+  );
   assert.ok(
     host.events.some(
       (m) => m.type === "peer" && m.id === teacher.id && m.role === "teacher",
@@ -97,7 +131,13 @@ try {
   await host.request({ type: "lock", locked: true });
   const pc2 = await client();
   assert.equal(
-    (await pc2.request({ type: "join", code: room.teacherCode })).role,
+    (
+      await pc2.request({
+        type: "join",
+        attendanceNumber: 7,
+        code: room.teacherCode,
+      })
+    ).role,
     "teacher",
   );
   pc.ws.close();
@@ -116,6 +156,7 @@ try {
     (
       await newcomer.request({
         type: "join",
+        attendanceNumber: 7,
         code: room.code,
         lessonId,
         token: teacher.token,
@@ -124,16 +165,31 @@ try {
     teacher.id,
   );
   const studentResume = await client();
+  const resumedStudent = await studentResume.request({
+    type: "join",
+    attendanceNumber: 7,
+    code: rotated.teacherCode,
+    token: child.token,
+    role: "teacher",
+  });
+  assert.equal(resumedStudent.role, "student");
+  assert.equal(resumedStudent.id, child.id);
+  assert.equal(resumedStudent.relay, false);
+  assert.notEqual(resumedStudent.generation, child.generation);
   assert.equal(
     (
-      await studentResume.request({
-        type: "join",
-        code: rotated.teacherCode,
-        token: child.token,
-        role: "teacher",
+      await host.request({
+        type: "fallback",
+        to: child.id,
+        generation: child.generation,
       })
-    ).role,
-    "student",
+    ).ok,
+    false,
+  );
+  assert.equal(
+    host.events.filter((m) => m.type === "peer" && m.id === child.id).at(-1)
+      .relayId,
+    undefined,
   );
   host.ws.close();
   await once(host.ws, "close");
@@ -157,6 +213,7 @@ try {
   const returningTeacher = await client();
   const continued = await returningTeacher.request({
     type: "join",
+    attendanceNumber: 7,
     code: reopened.teacherCode,
     token: teacher.token,
     lessonId,

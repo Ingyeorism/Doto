@@ -10,3 +10,4 @@ playwright-report/
 logs/
 .deploy/
 .backups/
+data/

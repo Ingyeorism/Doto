@@ -1,7 +1,7 @@
 import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./scripts",
-  testMatch: /(?:classroom|diagnostics|tablet-host|usage-consent)\.spec\.ts/,
+  testMatch: /(?:classroom|diagnostics|tablet-host|usage-consent|classroom-upgrade|adaptive-sync)\.spec\.ts/,
   workers: 1,
   timeout: 120000,
   expect: { timeout: 15000 },
@@ -34,6 +34,8 @@ export default defineConfig({
       PORT: "3100",
       HOST: "127.0.0.1",
       LOG_DIR: "test-results/diagnostics",
+      DOTO_ADMIN_TOKEN: "isolated-playwright-test-secret-123456",
+      DOTO_TUNING_FILE: "test-results/server-tuning.json",
     },
     url: "http://localhost:3100/api/health",
     reuseExistingServer: false,

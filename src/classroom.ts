@@ -26,6 +26,7 @@ import { safeHtml } from "./safe-html";
 import { createUuid } from "./uuid";
 import { moveBoardCard } from "./board-order";
 import { diagnostic, diagnosticClientId, errorFields } from "./diagnostics";
+import type { GuideCue } from "./ButtonGuidance";
 
 export type Role = "teacher" | "student";
 export type Settings = {
@@ -39,6 +40,7 @@ export interface Member {
   id: number;
   name: string;
   token: string;
+  attendanceNumber?: number;
 }
 export interface Lesson {
   id: string;
@@ -58,9 +60,10 @@ export interface Session {
   token: string;
   id: number;
   name: string;
+  enteredName?: string;
   host?: boolean;
   teacherCode?: string;
-  relay?: boolean;
+  attendanceNumber?: number;
 }
 type AnchorRebase = {
   feedbackId: number;
@@ -92,6 +95,7 @@ export interface ClassroomState {
 }
 type Peer = {
   id: number;
+  generation?: string;
   diagnosticId: string;
   attemptId: string;
   startedAt: number;
@@ -113,6 +117,8 @@ type Peer = {
   timer?: ReturnType<typeof setTimeout>;
   chunks: Map<string, { parts: string[]; size: number; at: number }>;
   ready: boolean;
+  updates?: Map<number, Uint8Array[]>;
+  updateTimer?: ReturnType<typeof setTimeout>;
 };
 const defaultSettings = (): Settings => {
   try {
@@ -191,6 +197,9 @@ export class Classroom {
     }
   >();
   private saveTimer?: ReturnType<typeof setTimeout>;
+  private saveDeadline?: ReturnType<typeof setTimeout>;
+  private updateDelayMs = 120;
+  private directGeneration?: string;
   private broadcastTimer?: ReturnType<typeof setTimeout>;
   private joinTimer?: ReturnType<typeof setTimeout>;
   private serialSave = Promise.resolve();
@@ -201,6 +210,60 @@ export class Classroom {
   private attemptId = createUuid();
   private signalQueue = Promise.resolve();
   private waitingSignals: any[] = [];
+  private guideListeners = new Set<(cue: GuideCue) => void>();
+  private lastGuideAt = 0;
+  subscribeGuide = (fn: (cue: GuideCue) => void) => {
+    this.guideListeners.add(fn);
+    return () => {
+      this.guideListeners.delete(fn);
+    };
+  };
+  highlight = (scope: string, target: string) => {
+    if (
+      this.state.session?.role !== "teacher" ||
+      this.state.status !== "connected"
+    )
+      return;
+    if (this.isHost) this.broadcastGuide(scope, target);
+    else {
+      const peer = this.peers.get(-1);
+      if (peer?.ready)
+        this.send(peer, { type: "guide-request", scope, target });
+    }
+  };
+  private broadcastGuide(scope: unknown, target: unknown) {
+    if (
+      typeof scope !== "string" ||
+      typeof target !== "string" ||
+      Date.now() - this.lastGuideAt < 1000 ||
+      this.lesson.ended
+    )
+      return;
+    const b = this.lesson.board;
+    const valid =
+      scope === "board"
+        ? b.groups.some((g) =>
+            [
+              `group-add:${g.id}`,
+              `group-new:${g.id}`,
+              ...(g.resources ?? []).map((r) => `resource:${r.id}`),
+            ].includes(target),
+          ) ||
+          b.posts.some((p) =>
+            [
+              `post-open:${p.id}`,
+              `post-expand:${p.id}`,
+              `post-comments:${p.id}`,
+            ].includes(target),
+          )
+        : b.posts.some((p) => scope === `post:${p.id}`) &&
+          ["post-close", "post-submit"].includes(target);
+    if (!valid) return;
+    this.lastGuideAt = Date.now();
+    const cue: GuideCue = { scope, target, expiresAt: Date.now() + 3000 };
+    for (const peer of this.peers.values())
+      if (peer.ready && peer.id > 0) this.send(peer, { type: "guide", cue });
+  }
   private trace(event: string, fields: Record<string, unknown> = {}) {
     diagnostic(event, {
       attemptId: this.attemptId,
@@ -357,7 +420,9 @@ export class Classroom {
     this.revision++;
     this.emit({ lesson: { ...this.lesson }, saveState: "saving" });
     clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => void this.flush(), 120);
+    this.saveTimer = setTimeout(() => void this.flush(), 800);
+    if (!this.saveDeadline)
+      this.saveDeadline = setTimeout(() => void this.flush(), 2000);
     if (broadcast && this.isHost && !this.broadcastTimer)
       this.broadcastTimer = setTimeout(() => {
         this.broadcastTimer = undefined;
@@ -366,7 +431,10 @@ export class Classroom {
       }, 120);
   }
   async flush() {
+    this.flushUpdates();
     clearTimeout(this.saveTimer);
+    clearTimeout(this.saveDeadline);
+    this.saveDeadline = undefined;
     if (!this.state.lesson || !this.state.session) return;
     const rev = this.revision;
     const retained = pruneTrash(this.lesson.board.trash);
@@ -507,10 +575,14 @@ export class Classroom {
     this.load(record);
     this.emit({ status: "ended" });
   }
-  async join(code: string, name: string, fresh = false) {
-    code = code.trim();
-    const relay = code.startsWith("*");
-    if (relay) code = code.slice(1);
+  async join(
+    code: string,
+    name: string,
+    fresh = false,
+    attendanceNumber?: number,
+  ) {
+    // Old QR links may include a star. It no longer selects a transport.
+    code = code.trim().replace(/^\*/, "");
     if (!/^(?:\d{6}|\d{8})$/.test(code))
       throw Error("입장 코드를 확인해 주세요.");
     await this.disconnect();
@@ -551,7 +623,10 @@ export class Classroom {
       role === "student" &&
       previous &&
       name.trim() &&
-      previous.name !== name.trim()
+      ((previous.enteredName ?? previous.name) !== name.trim() ||
+        (attendanceNumber !== undefined &&
+          previous.attendanceNumber !== undefined &&
+          previous.attendanceNumber !== attendanceNumber))
     )
       previous = undefined;
     // Discovering a reopened class by code can retry with its saved credential before creating a new participant.
@@ -560,10 +635,8 @@ export class Classroom {
       code,
       name,
       token: previous?.token,
-      relay,
+      attendanceNumber,
     });
-    if (relay && reply.relay !== true)
-      throw Error("서버를 업데이트한 뒤 다시 입장해 주세요.");
     const session: Session = {
       role: reply.role === "teacher" ? "teacher" : "student",
       lessonId: reply.lessonId,
@@ -571,9 +644,11 @@ export class Classroom {
       token: reply.token,
       id: reply.id,
       name: reply.name,
+      enteredName: name.trim(),
       host: false,
-      relay,
+      attendanceNumber: reply.attendanceNumber,
     };
+    this.directGeneration = reply.generation;
     const saved = await get<SavedLesson>(savedKey(session));
     this.load(
       saved
@@ -604,17 +679,48 @@ export class Classroom {
   }
   private startJoinTimeout() {
     clearTimeout(this.joinTimer);
-    this.joinTimer = setTimeout(() => {
-      if (this.state.status === "connecting") {
-        this.trace("join.timeout", { durationMs: 20000 });
-        for (const peer of this.peers.values()) void this.traceStats(peer);
-        this.emit({
-          status: "offline",
-          message:
-            "선생님과 연결하지 못했어요. 선생님 화면과 네트워크를 확인하고 다시 시도해 주세요.",
-        });
-      }
-    }, 20000);
+    this.joinTimer = setTimeout(
+      () => {
+        if (this.state.status === "connecting") {
+          if (!this.fallbackRequested.has(-1) && !this.peers.get(-1)?.relay) {
+            this.requestFallback(-1);
+            return;
+          }
+          this.trace("join.timeout", { durationMs: 20000 });
+          for (const peer of this.peers.values()) void this.traceStats(peer);
+          this.emit({
+            status: "offline",
+            message:
+              "선생님과 연결하지 못했어요. 선생님 화면과 네트워크를 확인하고 다시 시도해 주세요.",
+          });
+        }
+      },
+      this.fallbackRequested.has(-1) ? 20000 : 8000,
+    );
+  }
+  private fallbackRequested = new Set<number>();
+  private requestFallback(
+    peerId: number,
+    generation = this.isHost
+      ? this.peers.get(peerId)?.generation
+      : this.directGeneration,
+  ) {
+    if (
+      this.closed ||
+      !this.state.lesson ||
+      this.lesson.ended ||
+      this.socket?.readyState !== WebSocket.OPEN ||
+      this.fallbackRequested.has(peerId)
+    )
+      return;
+    this.fallbackRequested.add(peerId);
+    if (!this.isHost)
+      this.emit({
+        status: "connecting",
+        message: "중앙 서버를 통해 다시 연결하는 중이에요…",
+      });
+    this.sendSignal({ type: "fallback", to: peerId, generation });
+    if (!this.isHost) this.startJoinTimeout();
   }
   private async openSocket() {
     this.closed = false;
@@ -631,6 +737,7 @@ export class Classroom {
         throw error;
       });
     this.stun = config.stun.filter((s: string) => s.startsWith("stun:"));
+    this.setUpdateDelay(config.updateDelayMs);
     this.publicUrl = config.publicUrl || location.origin;
     this.trace("config.ok", { stunServers: this.stun.length });
     if (this.socket?.readyState === WebSocket.OPEN) return;
@@ -643,7 +750,7 @@ export class Classroom {
       if (this.socket !== ws || this.closed) return;
       try {
         const m = JSON.parse(e.data);
-        if (m.type !== "relay")
+        if (m.type !== "relay" && m.type !== "server-load")
           this.trace("signal.receive", {
             messageType: m.type,
             requestId: m.requestId,
@@ -697,9 +804,10 @@ export class Classroom {
         }, 1000);
       } else
         this.emit({
-          message: this.state.session?.relay
-            ? "수업 연결이 끊겼어요. 글은 계속 쓰고, 다시 연결할 수 있어요."
-            : "새 입장 연결이 끊겼어요. 이미 연결된 글쓰기는 계속할 수 있어요.",
+          message:
+            this.fallbackRequested.size > 0
+              ? "수업 연결이 끊겼어요. 글은 계속 쓰고, 다시 연결할 수 있어요."
+              : "새 입장 연결이 끊겼어요. 이미 연결된 글쓰기는 계속할 수 있어요.",
         });
     };
   }
@@ -715,6 +823,7 @@ export class Classroom {
       old?.close();
       this.signalJoined = false;
     }
+    this.fallbackRequested.clear();
     this.emit({
       status: "connecting",
       error: "",
@@ -761,13 +870,18 @@ export class Classroom {
           token: this.session.token,
           name: this.session.name,
           lessonId: this.session.lessonId,
-          relay: this.session.relay === true,
+          attendanceNumber: this.session.attendanceNumber,
         });
-        if (this.session.relay && r.relay !== true)
-          throw Error("서버를 업데이트한 뒤 다시 입장해 주세요.");
         this.emit({
-          session: { ...this.session, token: r.token, id: r.id, name: r.name },
+          session: {
+            ...this.session,
+            token: r.token,
+            id: r.id,
+            name: r.name,
+            attendanceNumber: r.attendanceNumber,
+          },
         });
+        this.directGeneration = r.generation;
         this.remember();
       }
       this.startJoinTimeout();
@@ -862,10 +976,21 @@ export class Classroom {
           descriptionType: m.description?.type,
           ...errorFields(error),
         });
-        if (this.socket === socket && !this.closed) this.fail(error);
+        if (this.socket === socket && !this.closed) {
+          if (m.type === "signal" || m.type === "peer")
+            this.requestFallback(
+              this.isHost ? (m.id ?? m.from) : -1,
+              m.generation,
+            );
+          else this.fail(error);
+        }
       });
   }
   private async signal(m: any) {
+    if (m.type === "server-load") {
+      this.setUpdateDelay(m.updateDelayMs);
+      return;
+    }
     if (m.type === "result") return this.result(m);
     if (m.type === "ended") return this.receiveEnd();
     if (m.type === "replaced") {
@@ -879,38 +1004,63 @@ export class Classroom {
     }
     if (m.type === "relay") return this.receiveRelay(m);
     if (m.type === "peer" && this.isHost) {
-      const member: Member = { id: m.id, name: m.name, token: m.token };
+      const member: Member = {
+        id: m.id,
+        name: m.name,
+        token: m.token,
+        attendanceNumber: m.attendanceNumber,
+      };
       if (m.role === "teacher" && m.id < -1) {
         this.lesson.controllers ??= [];
         if (!this.controller(m.id)) this.lesson.controllers.push(member);
       } else {
         if (!this.lesson.members.some((p) => p.id === member.id))
           this.lesson.members.push(member);
+        else
+          this.lesson.members = this.lesson.members.map((p) =>
+            p.id === member.id ? member : p,
+          );
         if (!this.lesson.board.participants!.some((p) => p.id === m.id))
           this.lesson.board.participants!.push({
             id: m.id,
             name: m.name,
+            attendanceNumber: m.attendanceNumber,
             connected: false,
             joinedAt: Date.now(),
           });
+        else
+          this.lesson.board.participants = this.lesson.board.participants!.map(
+            (p) =>
+              p.id === m.id
+                ? { ...p, attendanceNumber: m.attendanceNumber }
+                : p,
+          );
       }
       this.changed();
       if (typeof m.relayId === "string") {
+        this.fallbackRequested.add(m.id);
         const peer = this.makeRelayPeer(m.id, m.relayId);
         this.sendRelay(peer, { kind: "open" });
         return;
       }
-      const peer = this.makePeer(m.id);
+      this.fallbackRequested.delete(m.id);
+      const peer = this.makePeer(m.id, m.generation);
       this.attachChannel(peer, peer.pc.createDataChannel("doto"));
       await peer.pc.setLocalDescription(await peer.pc.createOffer());
       this.tracePeer("rtc.description", peer, { descriptionType: "offer" });
       this.sendSignal({
         type: "signal",
         to: m.id,
+        generation: peer.generation,
         description: peer.pc.localDescription,
       });
     }
     if (m.type === "teacher-ready" && !this.isHost) {
+      this.directGeneration = m.generation;
+      this.fallbackRequested.delete(-1);
+      const old = this.peers.get(-1);
+      if (old && !old.relay && old.generation !== m.generation)
+        this.closePeer(old, "replaced");
       this.emit({
         status: "connecting",
         message: "선생님과 다시 연결하는 중이에요…",
@@ -918,19 +1068,21 @@ export class Classroom {
       this.startJoinTimeout();
     }
     if (m.type === "signal") {
-      if (!this.isHost && this.session.relay) return;
       const peerId = this.isHost ? m.from : -1;
+      if (!this.isHost && m.generation !== this.directGeneration) return;
+      if (this.fallbackRequested.has(peerId)) return;
       let peer = this.peers.get(peerId);
+      if (peer && !peer.relay && peer.generation !== m.generation) return;
       if (peer?.relay) return;
       // Trickle ICE can arrive before the offer. Keep those candidates on the same peer.
       if (
         m.description?.type === "offer" &&
         (!peer || peer.pc?.remoteDescription)
       )
-        peer = this.makePeer(peerId);
+        peer = this.makePeer(peerId, m.generation);
       if (!peer) {
         if (m.candidate) {
-          peer = this.makePeer(peerId);
+          peer = this.makePeer(peerId, m.generation);
           peer.candidates.push(m.candidate);
           this.traceRemoteCandidate(peer, m.candidate);
         }
@@ -950,6 +1102,7 @@ export class Classroom {
           this.sendSignal({
             type: "signal",
             to: peerId,
+            generation: peer.generation,
             description: pc.localDescription,
           });
         }
@@ -999,11 +1152,11 @@ export class Classroom {
     const peerId = this.isHost ? message.from : -1;
     if (
       !this.isHost &&
-      this.session.relay &&
       message.from === "teacher" &&
       message.kind === "open" &&
       typeof message.channel === "string"
     ) {
+      this.fallbackRequested.add(peerId);
       const peer = this.makeRelayPeer(peerId, message.channel);
       this.sendRelay(peer, { kind: "ready" });
       this.peerOpened(peer);
@@ -1030,7 +1183,10 @@ export class Classroom {
       this.drain(peer);
     }
   }
-  private makePeer(peerId: number): Peer & { pc: RTCPeerConnection } {
+  private makePeer(
+    peerId: number,
+    generation?: string,
+  ): Peer & { pc: RTCPeerConnection } {
     const old = this.peers.get(peerId);
     if (old) this.closePeer(old, "replaced");
     const pc = new RTCPeerConnection({
@@ -1038,6 +1194,7 @@ export class Classroom {
     });
     const peer: Peer & { pc: RTCPeerConnection } = {
       id: peerId,
+      generation,
       diagnosticId: createUuid(),
       attemptId: this.attemptId,
       startedAt: performance.now(),
@@ -1061,14 +1218,8 @@ export class Classroom {
       if (!peer.ready) {
         this.tracePeer("peer.timeout", peer);
         this.closePeer(peer, "timeout");
-        if (!this.isHost)
-          this.emit({
-            status: "offline",
-            message:
-              "선생님과 연결하지 못했어요. 선생님 화면과 네트워크를 확인하고 다시 시도해 주세요.",
-          });
       }
-    }, 20000);
+    }, 8000);
     pc.onicecandidate = (e) => {
       if (e.candidate) {
         peer.localCandidates++;
@@ -1079,6 +1230,7 @@ export class Classroom {
         this.sendSignal({
           type: "signal",
           to: peerId,
+          generation: peer.generation,
           candidate: e.candidate.toJSON(),
         });
       }
@@ -1116,6 +1268,8 @@ export class Classroom {
     peer.ready = false;
     peer.queue.length = 0;
     peer.chunks.clear();
+    clearTimeout(peer.updateTimer);
+    peer.updates?.clear();
     if (peer.relay) {
       clearTimeout(peer.relay.timer);
       if (!["closed", "socket-close", "replaced"].includes(reason))
@@ -1136,6 +1290,17 @@ export class Classroom {
           : "선생님과 연결이 끊겼어요. 글은 계속 쓰고, 다시 연결할 수 있어요.",
       });
     }
+    if (
+      !peer.relay &&
+      [
+        "timeout",
+        "failed",
+        "disconnected",
+        "channel-close",
+        "channel-error",
+      ].includes(reason)
+    )
+      this.requestFallback(peer.id, peer.generation);
   }
   private connection(studentId: number, connected: boolean) {
     this.emit({
@@ -1318,6 +1483,23 @@ export class Classroom {
     });
   }
   private receive(peer: Peer, m: any) {
+    if (m.type === "guide-request") {
+      if (this.isHost && this.controller(peer.id))
+        this.broadcastGuide(m.scope, m.target);
+      return;
+    }
+    if (m.type === "guide") {
+      if (
+        !this.isHost &&
+        this.session.role === "student" &&
+        peer.id === -1 &&
+        typeof m.cue?.scope === "string" &&
+        typeof m.cue?.target === "string" &&
+        Number.isFinite(m.cue?.expiresAt)
+      )
+        this.guideListeners.forEach((fn) => fn(m.cue));
+      return;
+    }
     if (m.type === "result") {
       if (!this.isHost) this.result(m);
       return;
@@ -1418,18 +1600,51 @@ export class Classroom {
           )
         : [this.peers.get(-1)].filter((peer): peer is Peer => !!peer);
       for (const peer of recipients)
-        if (peer !== origin) {
-          const encoder = encoding.createEncoder();
-          sync.writeUpdate(encoder, update);
-          this.send(peer, {
-            type: "sync",
-            docId,
-            data: toBase64(encoding.toUint8Array(encoder)),
-          });
+        if (peer !== origin && peer.ready) {
+          // Only student-originated edits wait. Host forwarding and teacher edits
+          // stay immediate so the configured delay is incurred once per path.
+          if (this.session.role === "student") {
+            peer.updates ??= new Map();
+            const pending = peer.updates.get(docId) ?? [];
+            pending.push(update);
+            peer.updates.set(docId, pending);
+            if (!peer.updateTimer)
+              peer.updateTimer = setTimeout(
+                () => this.flushPeerUpdates(peer),
+                this.updateDelayMs,
+              );
+          } else this.sendUpdate(peer, docId, update);
         }
     });
     this.project(docId);
     return y;
+  }
+  private setUpdateDelay(value: unknown) {
+    if (typeof value === "number" && Number.isFinite(value))
+      this.updateDelayMs = Math.max(50, Math.min(3000, value));
+  }
+  private sendUpdate(peer: Peer, docId: number, update: Uint8Array) {
+    const encoder = encoding.createEncoder();
+    sync.writeUpdate(encoder, update);
+    this.send(peer, {
+      type: "sync",
+      docId,
+      data: toBase64(encoding.toUint8Array(encoder)),
+    });
+  }
+  private flushPeerUpdates(peer: Peer) {
+    clearTimeout(peer.updateTimer);
+    peer.updateTimer = undefined;
+    if (this.peers.get(peer.id) !== peer || !peer.ready) {
+      peer.updates?.clear();
+      return;
+    }
+    for (const [docId, updates] of peer.updates ?? [])
+      this.sendUpdate(peer, docId, Y.mergeUpdates(updates));
+    peer.updates?.clear();
+  }
+  private flushUpdates() {
+    for (const peer of this.peers.values()) this.flushPeerUpdates(peer);
   }
   private project(docId: number) {
     const y = this.documents.get(docId);
@@ -1533,6 +1748,8 @@ export class Classroom {
   private sendRebases(peer: Peer, docId: number) {
     const anchors = this.anchorRebases.get(docId);
     if (!anchors?.length || this.rebasesSending.has(docId)) return;
+    // Undo's new CRDT items must reach the host before their replacement anchors.
+    this.flushPeerUpdates(peer);
     this.rebasesSending.add(docId);
     void this.request((requestId) =>
       this.send(peer, {
@@ -1560,6 +1777,7 @@ export class Classroom {
       .finally(() => this.rebasesSending.delete(docId));
   }
   action = async (action: any): Promise<any> => {
+    this.flushUpdates();
     if (this.isHost) {
       const value = this.applyAction(-1, action);
       // A success acknowledgement must survive an immediate refresh.
@@ -1622,8 +1840,8 @@ export class Classroom {
       const d = ownDoc();
       this.project(d.id);
       const current = b.docs.find((x) => x.id === d.id)!;
-      if (!current.title.trim() || !current.paragraphs.join("").trim())
-        throw Error("제목과 글을 적어 주세요.");
+      if (!current.title.trim() && !current.paragraphs.join("").trim())
+        throw Error("제목이나 본문을 적어 주세요.");
       if (current.title.length > DOCUMENT_TITLE_MAX_LENGTH)
         throw Error(
           `제목을 ${DOCUMENT_TITLE_MAX_LENGTH}자 이내로 줄여 주세요.`,
@@ -1920,6 +2138,7 @@ export class Classroom {
     this.closed = true;
     this.signalJoined = false;
     this.waitingSignals = [];
+    this.fallbackRequested.clear();
     clearTimeout(this.joinTimer);
     clearTimeout(this.broadcastTimer);
     this.broadcastTimer = undefined;

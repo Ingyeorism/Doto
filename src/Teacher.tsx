@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  ArrowDownAZ,
   Check,
   ChevronRight,
   Columns2,
@@ -34,6 +33,7 @@ import {
 } from "./TeacherMessages";
 
 interface Props extends MessageActions {
+  preferenceKey?: string;
   selectedDocId?: number | null;
   onSelectDoc?: (id: number | null) => void;
   participants: Participant[];
@@ -50,6 +50,7 @@ interface Props extends MessageActions {
   ) => void;
 }
 export function Teacher({
+  preferenceKey = "preview",
   selectedDocId,
   onSelectDoc,
   docs,
@@ -67,8 +68,42 @@ export function Teacher({
   const selected = selectedDocId === undefined ? localSelected : selectedDocId;
   const setSelected = onSelectDoc ?? setLocalSelected;
   const [size, setSize] = useState("normal");
-  const [sort, setSort] = useState(false);
-  const [groupFilter, setGroupFilter] = useState("all");
+  const [sort, setSort] = useState("number");
+  const [groupFilter, setGroupFilter] = useState(() => {
+    try {
+      return (
+        sessionStorage.getItem(`doto.overview.group.${preferenceKey}`) || "all"
+      );
+    } catch {
+      return "all";
+    }
+  });
+  const [hideEmpty, setHideEmpty] = useState(() => {
+    try {
+      return localStorage.getItem("doto.overview.hideEmpty") === "true";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (groupFilter !== "all" && !groups.some((g) => g.id === groupFilter))
+      setGroupFilter("all");
+    try {
+      sessionStorage.setItem(
+        `doto.overview.group.${preferenceKey}`,
+        groupFilter,
+      );
+    } catch {
+      /* Optional view preference. */
+    }
+  }, [groups, groupFilter, preferenceKey]);
+  useEffect(() => {
+    try {
+      localStorage.setItem("doto.overview.hideEmpty", String(hideEmpty));
+    } catch {
+      /* Optional view preference. */
+    }
+  }, [hideEmpty]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [compareMode, setCompareMode] = useState(false);
   const [compareIds, setCompareIds] = useState<number[]>([]);
@@ -86,6 +121,7 @@ export function Teacher({
   const visible = docs.filter(
     (d) =>
       (groupFilter === "all" || d.groupId === groupFilter) &&
+      (!hideEmpty || !!d.title.trim() || charCount(d) > 0) &&
       (statusFilter === "all" ||
         (statusFilter === "draft" && !d.published) ||
         (statusFilter === "published" && d.published) ||
@@ -116,9 +152,31 @@ export function Teacher({
             (statusFilter !== "help" || p.help),
         )
       : [];
-  const ordered = sort
-    ? [...visible].sort((a, b) => a.name.localeCompare(b.name, "ko"))
-    : visible;
+  const numberOf = (studentId: number) =>
+    participants.find((p) => p.id === studentId)?.attendanceNumber;
+  const compareParticipants = (a: Participant, b: Participant) =>
+    (sort === "number"
+      ? (a.attendanceNumber ?? Infinity) - (b.attendanceNumber ?? Infinity) ||
+        a.name.localeCompare(b.name, "ko")
+      : sort === "name"
+        ? a.name.localeCompare(b.name, "ko")
+        : a.joinedAt - b.joinedAt) || a.joinedAt - b.joinedAt;
+  const ordered = [...visible].sort((a, b) => {
+    if (sort === "number")
+      return (
+        (numberOf(a.studentId) ?? Infinity) -
+          (numberOf(b.studentId) ?? Infinity) ||
+        a.name.localeCompare(b.name, "ko") ||
+        a.createdAt - b.createdAt
+      );
+    if (sort === "name")
+      return a.name.localeCompare(b.name, "ko") || a.createdAt - b.createdAt;
+    return (
+      (participants.find((p) => p.id === a.studentId)?.joinedAt ?? 0) -
+        (participants.find((p) => p.id === b.studentId)?.joinedAt ?? 0) ||
+      a.createdAt - b.createdAt
+    );
+  });
   return (
     <div
       className={`teacher-layout ${selectedDoc && !compareMode ? "has-detail" : ""}`}
@@ -130,9 +188,12 @@ export function Teacher({
               참여 학생 {participants.length}명 <span>명단 보기</span>
             </summary>
             <ul>
-              {participants.map((p) => (
+              {[...participants].sort(compareParticipants).map((p) => (
                 <li key={p.id}>
-                  <strong>{p.name}</strong>
+                  <strong>
+                    {p.attendanceNumber ? `${p.attendanceNumber}번 · ` : ""}
+                    {p.name}
+                  </strong>
                   <span>
                     {docs.some((d) => d.studentId === p.id)
                       ? `원고 ${docs.filter((d) => d.studentId === p.id).length}개`
@@ -183,15 +244,16 @@ export function Teacher({
               <Columns2 size={16} />
               <span>나란히 보기</span>
             </button>
-            <button
-              aria-label={sort ? "이름순 정렬" : "입장순 정렬"}
-              title="정렬 변경"
-              className="subtle-control"
-              onClick={() => setSort(!sort)}
+            <select
+              className="board-select"
+              aria-label="학생 글 정렬"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
             >
-              <ArrowDownAZ size={16} />
-              <span>{sort ? "이름순" : "입장순"}</span>
-            </button>
+              <option value="number">번호순</option>
+              <option value="name">이름순</option>
+              <option value="arrival">입장순</option>
+            </select>
             <div className="segmented" aria-label="카드 크기">
               {[
                 ["small", "작게"],
@@ -210,6 +272,31 @@ export function Teacher({
             </div>
           </div>
         </div>
+        <nav className="topic-filters" aria-label="수업 주제 필터">
+          <strong>이번 수업 글 보기</strong>
+          {[{ id: "all", title: "모든 그룹" }, ...groups].map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              aria-pressed={groupFilter === g.id}
+              onClick={() => {
+                setGroupFilter(g.id);
+                setSelected(null);
+                setStatusFilter("all");
+              }}
+            >
+              {g.title}
+            </button>
+          ))}
+          <label>
+            <input
+              type="checkbox"
+              checked={hideEmpty}
+              onChange={(e) => setHideEmpty(e.target.checked)}
+            />
+            제목·내용이 모두 빈 글 숨기기
+          </label>
+        </nav>
         <div className="teacher-status-filters" aria-label="작성 상태별 보기">
           {[
             ["all", "모두", scopedDocs.length],
@@ -276,12 +363,15 @@ export function Teacher({
           </div>
         )}
         <div className={`student-grid size-${size}`}>
-          {waiting.map((p) => (
+          {[...waiting].sort(compareParticipants).map((p) => (
             <article
               className="student-card unstarted-card"
               key={`participant-${p.id}`}
             >
-              <h3>{p.name}</h3>
+              <h3>
+                {p.attendanceNumber ? `${p.attendanceNumber}번 · ` : ""}
+                {p.name}
+              </h3>
               {docs.some((d) => d.studentId === p.id) ? (
                 <p>게시판에서 도움을 요청했어요.</p>
               ) : (
@@ -302,91 +392,122 @@ export function Teacher({
               )}
             </article>
           ))}
-          {ordered.map((doc, index) => (
-            <article
-              className={`student-card ${!compareMode && selected === doc.id ? "selected" : ""} ${compareIds.includes(doc.id) ? "compare-selected" : ""}`}
-              key={doc.id}
-            >
-              <button
-                className="card-heading"
-                aria-label={`${doc.name} 글 ${compareMode ? "선택" : "크게 보기"}`}
-                onClick={() =>
-                  compareMode
-                    ? setCompareIds((ids) =>
-                        ids.includes(doc.id)
-                          ? ids.filter((id) => id !== doc.id)
-                          : ids.length < 3
-                            ? [...ids, doc.id]
-                            : ids,
-                      )
-                    : setSelected(doc.id)
-                }
-              >
-                <span className="row gap-10">
-                  <span className="student-number">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <strong>{doc.name}</strong>
-                  {participants.find((p) => p.id === doc.studentId)?.help
-                    ?.docId === doc.id && (
-                    <span className="help-badge">도움 요청</span>
-                  )}
-                  {unreadMessages(
-                    participants.find((p) => p.id === doc.studentId),
-                    doc.id,
-                    "teacher",
-                  ).length > 0 && <span className="help-badge">새 메시지</span>}
-                  {feedback.some(
-                    (f) => f.docId === doc.id && f.response === "revised",
-                  ) && <span className="revised-badge">고쳤어요</span>}
-                  <span
-                    className={`status-dot ${doc.connected ? "" : "offline"}`}
-                    title={doc.connected ? "연결됨" : "연결 끊김"}
-                  />
-                </span>
-                {compareMode ? (
-                  <span
-                    className={`check-circle ${compareIds.includes(doc.id) ? "checked" : ""}`}
-                  >
-                    {compareIds.includes(doc.id) && <Check size={13} />}
-                  </span>
-                ) : (
-                  <ChevronRight size={16} className="card-arrow" />
-                )}
-              </button>
-              <div
-                className="card-prose"
-                onClick={() => {
-                  if (!compareMode) setSelected(doc.id);
-                }}
-              >
-                <span className="card-group-label">
-                  {groups.find((g) => g.id === doc.groupId)?.title}
-                </span>
-                <h3>{doc.title || "제목 없는 글"}</h3>
-                <DocumentBody doc={doc} />
-              </div>
-              <footer>
-                <span>
-                  {doc.connected ? (
-                    <>
-                      <span className="mini-dot" />
-                      {doc.updated} 수정
-                    </>
-                  ) : (
-                    "연결 끊김"
-                  )}
-                </span>
-                <span>
-                  {charCount(doc)}자
-                  {doc.published && (
-                    <span className="published-dot" title="게시한 글 있음" />
-                  )}
-                </span>
-              </footer>
-            </article>
-          ))}
         </div>
+        {groups
+          .filter((g) => groupFilter === "all" || g.id === groupFilter)
+          .map((group) => (
+            <section
+              className="overview-topic"
+              key={group.id}
+              aria-label={`${group.title} 학생 글`}
+            >
+              <h3 className="overview-topic-heading">
+                {group.title}
+                <span>
+                  {ordered.filter((d) => d.groupId === group.id).length}개
+                </span>
+              </h3>
+              <div className={`student-grid size-${size}`}>
+                {ordered
+                  .filter((d) => d.groupId === group.id)
+                  .map((doc) => (
+                    <article
+                      className={`student-card ${!compareMode && selected === doc.id ? "selected" : ""} ${compareIds.includes(doc.id) ? "compare-selected" : ""}`}
+                      key={doc.id}
+                    >
+                      <button
+                        className="card-heading"
+                        aria-label={`${doc.name} 글 ${compareMode ? "선택" : "크게 보기"}`}
+                        onClick={() =>
+                          compareMode
+                            ? setCompareIds((ids) =>
+                                ids.includes(doc.id)
+                                  ? ids.filter((id) => id !== doc.id)
+                                  : ids.length < 3
+                                    ? [...ids, doc.id]
+                                    : ids,
+                              )
+                            : setSelected(doc.id)
+                        }
+                      >
+                        <span className="row gap-10">
+                          <span className="student-number">
+                            {numberOf(doc.studentId) === undefined
+                              ? "—"
+                              : String(numberOf(doc.studentId)).padStart(
+                                  2,
+                                  "0",
+                                )}
+                          </span>
+                          <strong>{doc.name}</strong>
+                          {participants.find((p) => p.id === doc.studentId)
+                            ?.help?.docId === doc.id && (
+                            <span className="help-badge">도움 요청</span>
+                          )}
+                          {unreadMessages(
+                            participants.find((p) => p.id === doc.studentId),
+                            doc.id,
+                            "teacher",
+                          ).length > 0 && (
+                            <span className="help-badge">새 메시지</span>
+                          )}
+                          {feedback.some(
+                            (f) =>
+                              f.docId === doc.id && f.response === "revised",
+                          ) && <span className="revised-badge">고쳤어요</span>}
+                          <span
+                            className={`status-dot ${doc.connected ? "" : "offline"}`}
+                            title={doc.connected ? "연결됨" : "연결 끊김"}
+                          />
+                        </span>
+                        {compareMode ? (
+                          <span
+                            className={`check-circle ${compareIds.includes(doc.id) ? "checked" : ""}`}
+                          >
+                            {compareIds.includes(doc.id) && <Check size={13} />}
+                          </span>
+                        ) : (
+                          <ChevronRight size={16} className="card-arrow" />
+                        )}
+                      </button>
+                      <div
+                        className="card-prose"
+                        onClick={() => {
+                          if (!compareMode) setSelected(doc.id);
+                        }}
+                      >
+                        <span className="card-group-label">
+                          {groups.find((g) => g.id === doc.groupId)?.title}
+                        </span>
+                        <h3>{doc.title || "제목 없는 글"}</h3>
+                        <DocumentBody doc={doc} />
+                      </div>
+                      <footer>
+                        <span>
+                          {doc.connected ? (
+                            <>
+                              <span className="mini-dot" />
+                              {doc.updated} 수정
+                            </>
+                          ) : (
+                            "연결 끊김"
+                          )}
+                        </span>
+                        <span>
+                          {charCount(doc)}자
+                          {doc.published && (
+                            <span
+                              className="published-dot"
+                              title="게시한 글 있음"
+                            />
+                          )}
+                        </span>
+                      </footer>
+                    </article>
+                  ))}
+              </div>
+            </section>
+          ))}
         {!ordered.length && !waiting.length && (
           <p className="empty-note">이 조건에 맞는 원고나 학생이 없어요.</p>
         )}
