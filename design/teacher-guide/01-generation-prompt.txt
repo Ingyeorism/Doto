@@ -1,0 +1,20 @@
+Create page 1 of a Korean visual teacher guide for Doto using the two supplied real website screenshots as the actual instructional screen panels. This is a screenshot-and-arrow manual, with very little prose, clear large Korean labels, numbered arrows, and a calm cream and muted-green style matching the actual application. Make one landscape page, approximately 3:2, with generous margins and readable screenshots. Preserve the genuine captured UI, its Korean button labels, and its layout; crop and enlarge relevant screenshot regions rather than inventing substitute screens. Use screenshot 1 for the starting screen and screenshot 2 for the room setup screen. Arrange these two real screen panels in reading order and use numbered arrows pointing precisely to the actual controls. The crucial teaching point must be visually prominent: the teacher must choose ONE OF THE STUDENT TABLETS to open the classroom. The teacher PC connects later.
+
+Render these exact Korean editorial texts:
+Small header: "도토 · 교사 안내 01"
+Main title: "학생용 태블릿 한 대로 수업 열기"
+Prominent preparation strip: "학생용 태블릿 중 한 대를 준비하세요."
+Address badge: "dotoschool.uk"
+Step 1 arrow to the actual starting-screen 수업 열기 card: "① 수업 열기"
+Step 2 arrow to the actual room-name input: "② 수업 이름 입력"
+Step 3 arrow to the actual final room-creation button: "③ 방 열고 코드 받기"
+Bottom strong reminder: "이 태블릿의 도토 화면을 수업이 끝날 때까지 켜 두세요."
+Three compact preparation cues: "학생 와이파이" / "충전기 연결" / "화면 켜 두기"
+Small next-page cue: "다음 02 · 교사 PC 연결하기"
+
+Use device icons only as supporting cues. Do not imply that the teacher PC initially hosts the classroom. The two supplied screenshots must remain the main visual content. No paragraphs, no invented UI, no extra instructions.
+
+---
+
+Address addition:
+Edit this Korean teacher-guide page with exactly one addition: add a clearly readable editorial address badge saying "학생용 태블릿에서 dotoschool.uk 접속" in the available space directly above the left screenshot panel, next to or replacing its small panel heading "도토 시작 화면". This badge is part of the manual annotation, not a fake browser UI. Keep everything else unchanged: the title, real screenshots, three numbered arrows, student-tablet preparation reminder, and bottom keep-screen-open reminder. Preserve the full landscape page.

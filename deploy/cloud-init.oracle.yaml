@@ -1,0 +1,20 @@
+#cloud-config
+package_update: true
+packages:
+  - docker.io
+  - docker-compose-v2
+  - iptables-persistent
+ssh_pwauth: false
+disable_root: true
+swap:
+  filename: /swapfile
+  size: 2147483648
+  maxsize: 2147483648
+runcmd:
+  - [systemctl, enable, --now, docker]
+  - [mkdir, -p, /opt/doto]
+  - [chown, 'ubuntu:ubuntu', /opt/doto]
+  - [sh, -c, 'iptables -C INPUT -p tcp -m multiport --dports 80,443 -j ACCEPT 2>/dev/null || iptables -I INPUT -p tcp -m multiport --dports 80,443 -j ACCEPT']
+  - [sh, -c, 'iptables -C INPUT -p udp --dport 443 -j ACCEPT 2>/dev/null || iptables -I INPUT -p udp --dport 443 -j ACCEPT']
+  - [netfilter-persistent, save]
+final_message: 'Doto server bootstrap finished after $UPTIME seconds.'

@@ -1,0 +1,20 @@
+Create page 3 of the Korean screenshot-and-arrow teacher guide for Doto. Input images 1-3 are genuine screenshots captured on the live dotoschool.uk website and must supply the actual screen panels. Image 4 is finished page 1, supplied only to match the landscape 3:2 format, cream background, green annotations, acorn branding, rounded panels, typography, title size, and bottom reminder strip. Crop and enlarge relevant real screenshot regions. Keep their actual Korean button labels, input values, controls, relative layout, and content intact. Do not invent new screens.
+
+This page teaches a teacher who is already connected from their PC to prepare a writing topic. The classroom is still hosted by one of the student tablets and that tablet remains on. The three images are board before creating a group, filled-in group creation modal, and board with the new group. Use one left screen panel for the board toolbar, a larger central/right panel for the actual filled form, and a small result panel showing the newly created topic card. Keep all the steps easy to read with short labels.
+
+Render these exact Korean editorial texts:
+Header: "도토 · 교사 안내 03"
+Title: "글쓰기 주제 준비하기"
+Preparation strip: "교사 PC에서 학생들이 쓸 주제를 준비해요."
+Navigation cue near the first panel: "게시판 → 그룹 만들기"
+Arrow 1 to the actual 그룹 만들기 button: "① 그룹 만들기"
+Arrow 2 to the actual group name and instruction fields, bracketed together: "② 주제와 안내 입력"
+Arrow 3 to the actual 저장하기 button: "③ 저장하기"
+Form input values, preserved from the screenshot: "추천하고 싶은 책" and "책 이름, 기억에 남는 장면, 추천하는 이유를 써요."
+Small result-panel label: "게시판에 새 주제가 생겼어요"
+A short pointer to the + button in the new topic card: "학생은 이 +에서 글을 시작해요"
+Bottom single-sentence note: "그룹은 같은 주제의 글을 모으는 칸이에요."
+Small supporting reminder with a TABLET icon: "학생용 태블릿은 계속 켜 두기"
+Next-page cue: "다음 04 · 학생 초대하기"
+
+The source screens show an existing default group named 우리 반 이야기 and the new group 추천하고 싶은 책. Clearly point out the NEW group in the completed-state crop. The + is for creating a student document, not creating another group; the arrows for teacher group creation must point to the actual 그룹 만들기 button. Keep optional 수업 자료·글쓰기 도움 collapsed and do not expand it or imply it is required. All important control labels must be readable. No long paragraphs.

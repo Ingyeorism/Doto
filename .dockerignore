@@ -8,3 +8,5 @@ test-results
 reports
 design
 logs
+.deploy
+.backups

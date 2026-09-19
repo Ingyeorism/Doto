@@ -1,0 +1,3899 @@
+{
+  "summary": {
+    "cutoff": "2026-09-11T02:47:19.728Z",
+    "sourceFiles": [
+      "doto.jsonl",
+      "doto.jsonl.1",
+      "doto.jsonl.2"
+    ],
+    "events": 5139,
+    "first": "2026-09-11T01:59:39.023Z",
+    "firstEvent": "page.ready",
+    "peakReady": 20,
+    "peakCreated": 22,
+    "peakPoint": {
+      "time": "2026-09-11T02:13:05.934Z",
+      "event": "channel.open",
+      "peer": 44005978265573,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21
+    },
+    "newWindow": {
+      "first": "2026-09-11T02:34:54.930Z",
+      "last": "2026-09-11T02:47:04.630Z",
+      "peakReady": 16,
+      "peakAllocated": 17,
+      "failureReadyCounts": [
+        {
+          "time": "2026-09-11T02:34:56.616Z",
+          "ready": 14,
+          "allocated": 14,
+          "peer": 180793309991349
+        },
+        {
+          "time": "2026-09-11T02:35:22.309Z",
+          "ready": 14,
+          "allocated": 14,
+          "peer": 180793309991349
+        },
+        {
+          "time": "2026-09-11T02:36:10.496Z",
+          "ready": 13,
+          "allocated": 13,
+          "peer": 180793309991349
+        },
+        {
+          "time": "2026-09-11T02:36:31.415Z",
+          "ready": 13,
+          "allocated": 13,
+          "peer": 180793309991349
+        },
+        {
+          "time": "2026-09-11T02:36:52.540Z",
+          "ready": 12,
+          "allocated": 13,
+          "peer": -1
+        },
+        {
+          "time": "2026-09-11T02:37:01.835Z",
+          "ready": 12,
+          "allocated": 12,
+          "peer": 180793309991349
+        },
+        {
+          "time": "2026-09-11T02:38:33.795Z",
+          "ready": 12,
+          "allocated": 12,
+          "peer": 110095601665883
+        },
+        {
+          "time": "2026-09-11T02:40:09.383Z",
+          "ready": 14,
+          "allocated": 14,
+          "peer": 180793309991349
+        },
+        {
+          "time": "2026-09-11T02:40:38.070Z",
+          "ready": 15,
+          "allocated": 15,
+          "peer": 180793309991349
+        },
+        {
+          "time": "2026-09-11T02:41:04.320Z",
+          "ready": 16,
+          "allocated": 16,
+          "peer": 180793309991349
+        },
+        {
+          "time": "2026-09-11T02:41:25.821Z",
+          "ready": 16,
+          "allocated": 16,
+          "peer": 180793309991349
+        }
+      ],
+      "successfulNewChannels": 14,
+      "connectedClosures": 19
+    },
+    "lifecycle": [
+      {
+        "time": "2026-09-11T01:59:39.023Z",
+        "event": "page.ready"
+      },
+      {
+        "time": "2026-09-11T01:59:46.808Z",
+        "event": "classroom.status",
+        "status": "offline"
+      },
+      {
+        "time": "2026-09-11T01:59:46.809Z",
+        "event": "reconnect.start",
+        "reset": true
+      },
+      {
+        "time": "2026-09-11T01:59:46.809Z",
+        "event": "classroom.status",
+        "status": "connecting"
+      },
+      {
+        "time": "2026-09-11T01:59:47.004Z",
+        "event": "socket.opening"
+      },
+      {
+        "time": "2026-09-11T01:59:47.289Z",
+        "event": "socket.open"
+      },
+      {
+        "time": "2026-09-11T01:59:47.390Z",
+        "event": "classroom.status",
+        "status": "connected"
+      },
+      {
+        "time": "2026-09-11T02:21:42.573Z",
+        "event": "page.hidden"
+      },
+      {
+        "time": "2026-09-11T02:24:42.062Z",
+        "event": "page.visible"
+      },
+      {
+        "time": "2026-09-11T02:24:42.193Z",
+        "event": "socket.error"
+      },
+      {
+        "time": "2026-09-11T02:24:42.204Z",
+        "event": "socket.close",
+        "code": 1006
+      },
+      {
+        "time": "2026-09-11T02:24:43.248Z",
+        "event": "reconnect.start",
+        "reset": false
+      },
+      {
+        "time": "2026-09-11T02:24:43.249Z",
+        "event": "classroom.status",
+        "status": "connecting"
+      },
+      {
+        "time": "2026-09-11T02:24:43.406Z",
+        "event": "socket.opening"
+      },
+      {
+        "time": "2026-09-11T02:24:43.808Z",
+        "event": "socket.open"
+      },
+      {
+        "time": "2026-09-11T02:24:44.001Z",
+        "event": "classroom.status",
+        "status": "connected"
+      },
+      {
+        "time": "2026-09-11T02:26:30.578Z",
+        "event": "page.hidden"
+      },
+      {
+        "time": "2026-09-11T02:26:32.539Z",
+        "event": "page.visible"
+      }
+    ]
+  },
+  "changes": [
+    {
+      "time": "2026-09-11T02:00:04.027Z",
+      "event": "peer.created",
+      "peer": -1,
+      "ready": 0,
+      "students": 0,
+      "allocated": 1,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:00:04.712Z",
+      "event": "channel.open",
+      "peer": -1,
+      "ready": 1,
+      "students": 0,
+      "allocated": 1,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:42.199Z",
+      "event": "peer.created",
+      "peer": 18912474536368,
+      "ready": 1,
+      "students": 0,
+      "allocated": 2,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:42.702Z",
+      "event": "channel.open",
+      "peer": 18912474536368,
+      "ready": 2,
+      "students": 1,
+      "allocated": 2,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:45.010Z",
+      "event": "peer.created",
+      "peer": 14711723826160,
+      "ready": 2,
+      "students": 1,
+      "allocated": 3,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:45.471Z",
+      "event": "channel.open",
+      "peer": 14711723826160,
+      "ready": 3,
+      "students": 2,
+      "allocated": 3,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:46.396Z",
+      "event": "peer.created",
+      "peer": 17712329102132,
+      "ready": 3,
+      "students": 2,
+      "allocated": 4,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:46.656Z",
+      "event": "peer.created",
+      "peer": 139113302847790,
+      "ready": 3,
+      "students": 2,
+      "allocated": 5,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:46.932Z",
+      "event": "channel.open",
+      "peer": 17712329102132,
+      "ready": 4,
+      "students": 3,
+      "allocated": 5,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:47.183Z",
+      "event": "channel.open",
+      "peer": 139113302847790,
+      "ready": 5,
+      "students": 4,
+      "allocated": 5,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:49.836Z",
+      "event": "peer.created",
+      "peer": 277834551203491,
+      "ready": 5,
+      "students": 4,
+      "allocated": 6,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:50.055Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 5,
+      "students": 4,
+      "allocated": 7,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:50.460Z",
+      "event": "channel.open",
+      "peer": 277834551203491,
+      "ready": 6,
+      "students": 5,
+      "allocated": 7,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:50.546Z",
+      "event": "peer.created",
+      "peer": 173534571107226,
+      "ready": 6,
+      "students": 5,
+      "allocated": 8,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:50.625Z",
+      "event": "peer.created",
+      "peer": 135848180415128,
+      "ready": 6,
+      "students": 5,
+      "allocated": 9,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:50.932Z",
+      "event": "peer.created",
+      "peer": 201978712702459,
+      "ready": 6,
+      "students": 5,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:51.086Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 6,
+      "students": 5,
+      "allocated": 11,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:51.395Z",
+      "event": "channel.open",
+      "peer": 135848180415128,
+      "ready": 7,
+      "students": 6,
+      "allocated": 11,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:53.408Z",
+      "event": "peer.created",
+      "peer": 76935966405648,
+      "ready": 7,
+      "students": 6,
+      "allocated": 12,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:53.997Z",
+      "event": "channel.open",
+      "peer": 76935966405648,
+      "ready": 8,
+      "students": 7,
+      "allocated": 12,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:55.588Z",
+      "event": "peer.created",
+      "peer": 193667143585689,
+      "ready": 8,
+      "students": 7,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:55.946Z",
+      "event": "peer.created",
+      "peer": 17386527181429,
+      "ready": 8,
+      "students": 7,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:56.284Z",
+      "event": "channel.open",
+      "peer": 193667143585689,
+      "ready": 9,
+      "students": 8,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:56.591Z",
+      "event": "channel.open",
+      "peer": 17386527181429,
+      "ready": 10,
+      "students": 9,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:58.705Z",
+      "event": "peer.created",
+      "peer": 110095601665883,
+      "ready": 10,
+      "students": 9,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:08:59.150Z",
+      "event": "channel.open",
+      "peer": 110095601665883,
+      "ready": 11,
+      "students": 10,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:02.185Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 11,
+      "students": 10,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:02.706Z",
+      "event": "channel.open",
+      "peer": 180793309991349,
+      "ready": 12,
+      "students": 11,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:02.938Z",
+      "event": "peer.created",
+      "peer": 93764871939828,
+      "ready": 12,
+      "students": 11,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:03.365Z",
+      "event": "channel.open",
+      "peer": 93764871939828,
+      "ready": 13,
+      "students": 12,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:05.710Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "failed",
+      "ready": 13,
+      "students": 12,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:05.812Z",
+      "event": "peer.created",
+      "peer": 233734948723098,
+      "ready": 13,
+      "students": 12,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:06.257Z",
+      "event": "peer.closed",
+      "peer": 173534571107226,
+      "reason": "failed",
+      "ready": 13,
+      "students": 12,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:06.527Z",
+      "event": "channel.open",
+      "peer": 233734948723098,
+      "ready": 14,
+      "students": 13,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:06.576Z",
+      "event": "peer.closed",
+      "peer": 201978712702459,
+      "reason": "failed",
+      "ready": 14,
+      "students": 13,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:06.708Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "failed",
+      "ready": 14,
+      "students": 13,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:07.708Z",
+      "event": "peer.closed",
+      "peer": -1,
+      "reason": "replaced",
+      "ready": 13,
+      "students": 13,
+      "allocated": 13,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:09:07.740Z",
+      "event": "peer.created",
+      "peer": -1,
+      "ready": 13,
+      "students": 13,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:08.369Z",
+      "event": "channel.open",
+      "peer": -1,
+      "ready": 14,
+      "students": 13,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:09.576Z",
+      "event": "peer.created",
+      "peer": 73185975293769,
+      "ready": 14,
+      "students": 13,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:10.364Z",
+      "event": "channel.open",
+      "peer": 73185975293769,
+      "ready": 15,
+      "students": 14,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:10.616Z",
+      "event": "peer.created",
+      "peer": 248492315524178,
+      "ready": 15,
+      "students": 14,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:11.135Z",
+      "event": "channel.open",
+      "peer": 248492315524178,
+      "ready": 16,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:14.559Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 16,
+      "students": 15,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:19.969Z",
+      "event": "peer.created",
+      "peer": 139647521384740,
+      "ready": 16,
+      "students": 15,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:20.490Z",
+      "event": "channel.open",
+      "peer": 139647521384740,
+      "ready": 17,
+      "students": 16,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:24.512Z",
+      "event": "peer.created",
+      "peer": 11437444992914,
+      "ready": 17,
+      "students": 16,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:29.930Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "failed",
+      "ready": 17,
+      "students": 16,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:40.135Z",
+      "event": "peer.closed",
+      "peer": 11437444992914,
+      "reason": "failed",
+      "ready": 17,
+      "students": 16,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:09:58.077Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 17,
+      "students": 16,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:10:08.154Z",
+      "event": "peer.closed",
+      "peer": 14711723826160,
+      "reason": "channel-error",
+      "ready": 16,
+      "students": 15,
+      "allocated": 17,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:10:08.811Z",
+      "event": "peer.created",
+      "peer": 14711723826160,
+      "ready": 16,
+      "students": 15,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:10:09.255Z",
+      "event": "channel.open",
+      "peer": 14711723826160,
+      "ready": 17,
+      "students": 16,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:10:13.508Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "failed",
+      "ready": 17,
+      "students": 16,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:11:06.307Z",
+      "event": "peer.created",
+      "peer": 11437444992914,
+      "ready": 17,
+      "students": 16,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:11:15.779Z",
+      "event": "peer.closed",
+      "peer": 18912474536368,
+      "reason": "disconnected",
+      "ready": 16,
+      "students": 15,
+      "allocated": 17,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:11:21.838Z",
+      "event": "peer.closed",
+      "peer": 11437444992914,
+      "reason": "failed",
+      "ready": 16,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:11:53.886Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 16,
+      "students": 15,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:11:56.923Z",
+      "event": "peer.created",
+      "peer": 173534571107226,
+      "ready": 16,
+      "students": 15,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:09.317Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "failed",
+      "ready": 16,
+      "students": 15,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:12.462Z",
+      "event": "peer.closed",
+      "peer": 173534571107226,
+      "reason": "failed",
+      "ready": 16,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:19.175Z",
+      "event": "peer.created",
+      "peer": 201978712702459,
+      "ready": 16,
+      "students": 15,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:19.609Z",
+      "event": "channel.open",
+      "peer": 201978712702459,
+      "ready": 17,
+      "students": 16,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:28.156Z",
+      "event": "peer.closed",
+      "peer": 93764871939828,
+      "reason": "channel-error",
+      "ready": 16,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:12:28.874Z",
+      "event": "peer.created",
+      "peer": 93764871939828,
+      "ready": 16,
+      "students": 15,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:28.907Z",
+      "event": "peer.created",
+      "peer": 18912474536368,
+      "ready": 16,
+      "students": 15,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:29.328Z",
+      "event": "channel.open",
+      "peer": 93764871939828,
+      "ready": 17,
+      "students": 16,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:29.400Z",
+      "event": "channel.open",
+      "peer": 18912474536368,
+      "ready": 18,
+      "students": 17,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:29.966Z",
+      "event": "peer.created",
+      "peer": 173534571107226,
+      "ready": 18,
+      "students": 17,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:33.586Z",
+      "event": "peer.closed",
+      "peer": 173534571107226,
+      "reason": "replaced",
+      "ready": 18,
+      "students": 17,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:33.613Z",
+      "event": "peer.created",
+      "peer": 173534571107226,
+      "ready": 18,
+      "students": 17,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:36.094Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 18,
+      "students": 17,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:40.060Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 18,
+      "students": 17,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:48.827Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 18,
+      "students": 17,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:48.861Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 18,
+      "students": 17,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:49.011Z",
+      "event": "peer.closed",
+      "peer": 173534571107226,
+      "reason": "failed",
+      "ready": 18,
+      "students": 17,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:49.252Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "replaced",
+      "ready": 18,
+      "students": 17,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:49.272Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 18,
+      "students": 17,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:57.361Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "replaced",
+      "ready": 18,
+      "students": 17,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:57.384Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 18,
+      "students": 17,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:58.838Z",
+      "event": "peer.created",
+      "peer": 173534571107226,
+      "ready": 18,
+      "students": 17,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:59.176Z",
+      "event": "peer.created",
+      "peer": 11437444992914,
+      "ready": 18,
+      "students": 17,
+      "allocated": 22,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:59.495Z",
+      "event": "channel.open",
+      "peer": 173534571107226,
+      "ready": 19,
+      "students": 18,
+      "allocated": 22,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:59.911Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "replaced",
+      "ready": 19,
+      "students": 18,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:12:59.937Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 19,
+      "students": 18,
+      "allocated": 22,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:04.370Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "failed",
+      "ready": 19,
+      "students": 18,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:05.425Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "replaced",
+      "ready": 19,
+      "students": 18,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:05.447Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 19,
+      "students": 18,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:05.934Z",
+      "event": "channel.open",
+      "peer": 44005978265573,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:14.631Z",
+      "event": "peer.closed",
+      "peer": 11437444992914,
+      "reason": "failed",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:33.163Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:40.301Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:40.327Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:42.478Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:42.501Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:46.052Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:46.072Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:48.617Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:48.643Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:50.552Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:13:50.579Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:03.731Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:03.755Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:10.698Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:10.725Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:14.835Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:14.875Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:22.961Z",
+      "event": "peer.closed",
+      "peer": 193667143585689,
+      "reason": "channel-error",
+      "ready": 19,
+      "students": 18,
+      "allocated": 20,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:14:23.820Z",
+      "event": "peer.created",
+      "peer": 193667143585689,
+      "ready": 19,
+      "students": 18,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:24.404Z",
+      "event": "channel.open",
+      "peer": 193667143585689,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:30.446Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "failed",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:30.671Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:36.549Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:36.591Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:51.879Z",
+      "event": "peer.created",
+      "peer": 11437444992914,
+      "ready": 20,
+      "students": 19,
+      "allocated": 22,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:52.144Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "failed",
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:54.641Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 22,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:56.853Z",
+      "event": "peer.closed",
+      "peer": 139647521384740,
+      "reason": "channel-error",
+      "ready": 19,
+      "students": 18,
+      "allocated": 21,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:14:57.268Z",
+      "event": "peer.closed",
+      "peer": 11437444992914,
+      "reason": "replaced",
+      "ready": 19,
+      "students": 18,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:57.299Z",
+      "event": "peer.created",
+      "peer": 11437444992914,
+      "ready": 19,
+      "students": 18,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:57.774Z",
+      "event": "peer.created",
+      "peer": 139647521384740,
+      "ready": 19,
+      "students": 18,
+      "allocated": 22,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:14:58.260Z",
+      "event": "channel.open",
+      "peer": 139647521384740,
+      "ready": 20,
+      "students": 19,
+      "allocated": 22,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:15:10.082Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "failed",
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:15:12.697Z",
+      "event": "peer.closed",
+      "peer": 11437444992914,
+      "reason": "failed",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:15:22.735Z",
+      "event": "peer.created",
+      "peer": 11437444992914,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:15:34.812Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 22,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:15:38.118Z",
+      "event": "peer.closed",
+      "peer": 11437444992914,
+      "reason": "failed",
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:15:50.352Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "failed",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:16:12.739Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:16:18.469Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:16:18.505Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:16:27.276Z",
+      "event": "peer.created",
+      "peer": 11437444992914,
+      "ready": 20,
+      "students": 19,
+      "allocated": 22,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:16:28.596Z",
+      "event": "peer.closed",
+      "peer": 11437444992914,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:16:28.621Z",
+      "event": "peer.created",
+      "peer": 11437444992914,
+      "ready": 20,
+      "students": 19,
+      "allocated": 22,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:16:29.216Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:16:29.248Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 20,
+      "students": 19,
+      "allocated": 22,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:16:44.195Z",
+      "event": "peer.closed",
+      "peer": 11437444992914,
+      "reason": "failed",
+      "ready": 20,
+      "students": 19,
+      "allocated": 21,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:16:44.602Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "failed",
+      "ready": 20,
+      "students": 19,
+      "allocated": 20,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:18:03.263Z",
+      "event": "peer.closed",
+      "peer": 73185975293769,
+      "reason": "disconnected",
+      "ready": 19,
+      "students": 18,
+      "allocated": 19,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:18:07.671Z",
+      "event": "peer.closed",
+      "peer": 93764871939828,
+      "reason": "channel-error",
+      "ready": 18,
+      "students": 17,
+      "allocated": 18,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:18:08.500Z",
+      "event": "peer.created",
+      "peer": 93764871939828,
+      "ready": 18,
+      "students": 17,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:18:09.396Z",
+      "event": "peer.closed",
+      "peer": 93764871939828,
+      "reason": "replaced",
+      "ready": 18,
+      "students": 17,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:18:09.422Z",
+      "event": "peer.created",
+      "peer": 93764871939828,
+      "ready": 18,
+      "students": 17,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:18:09.875Z",
+      "event": "channel.open",
+      "peer": 93764871939828,
+      "ready": 19,
+      "students": 18,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:18:23.264Z",
+      "event": "peer.closed",
+      "peer": 110095601665883,
+      "reason": "channel-error",
+      "ready": 18,
+      "students": 17,
+      "allocated": 18,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:18:24.263Z",
+      "event": "peer.created",
+      "peer": 110095601665883,
+      "ready": 18,
+      "students": 17,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:18:24.947Z",
+      "event": "channel.open",
+      "peer": 110095601665883,
+      "ready": 19,
+      "students": 18,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:18:54.517Z",
+      "event": "peer.closed",
+      "peer": 139113302847790,
+      "reason": "replaced",
+      "ready": 18,
+      "students": 17,
+      "allocated": 18,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:18:54.550Z",
+      "event": "peer.created",
+      "peer": 139113302847790,
+      "ready": 18,
+      "students": 17,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:18:54.972Z",
+      "event": "channel.open",
+      "peer": 139113302847790,
+      "ready": 19,
+      "students": 18,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:19:42.477Z",
+      "event": "peer.closed",
+      "peer": 139647521384740,
+      "reason": "replaced",
+      "ready": 18,
+      "students": 17,
+      "allocated": 18,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:19:42.506Z",
+      "event": "peer.created",
+      "peer": 139647521384740,
+      "ready": 18,
+      "students": 17,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:19:43.456Z",
+      "event": "channel.open",
+      "peer": 139647521384740,
+      "ready": 19,
+      "students": 18,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:19:45.270Z",
+      "event": "peer.closed",
+      "peer": 173534571107226,
+      "reason": "disconnected",
+      "ready": 18,
+      "students": 17,
+      "allocated": 18,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:20:34.871Z",
+      "event": "peer.closed",
+      "peer": 139113302847790,
+      "reason": "disconnected",
+      "ready": 17,
+      "students": 16,
+      "allocated": 17,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:20:53.118Z",
+      "event": "peer.created",
+      "peer": 139113302847790,
+      "ready": 17,
+      "students": 16,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:20:54.003Z",
+      "event": "channel.open",
+      "peer": 139113302847790,
+      "ready": 18,
+      "students": 17,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:21:27.462Z",
+      "event": "peer.closed",
+      "peer": 18912474536368,
+      "reason": "disconnected",
+      "ready": 17,
+      "students": 16,
+      "allocated": 17,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:21:37.859Z",
+      "event": "peer.closed",
+      "peer": 139113302847790,
+      "reason": "channel-error",
+      "ready": 16,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:21:38.504Z",
+      "event": "peer.created",
+      "peer": 139113302847790,
+      "ready": 16,
+      "students": 15,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:21:38.950Z",
+      "event": "channel.open",
+      "peer": 139113302847790,
+      "ready": 17,
+      "students": 16,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:21:54.815Z",
+      "event": "peer.closed",
+      "peer": 139113302847790,
+      "reason": "disconnected",
+      "ready": 16,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.017Z",
+      "event": "peer.closed",
+      "peer": 14711723826160,
+      "reason": "replaced",
+      "ready": 15,
+      "students": 14,
+      "allocated": 15,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.110Z",
+      "event": "peer.created",
+      "peer": 14711723826160,
+      "ready": 15,
+      "students": 14,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.258Z",
+      "event": "peer.closed",
+      "peer": 17712329102132,
+      "reason": "replaced",
+      "ready": 14,
+      "students": 13,
+      "allocated": 15,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.285Z",
+      "event": "peer.created",
+      "peer": 17712329102132,
+      "ready": 14,
+      "students": 13,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.311Z",
+      "event": "peer.closed",
+      "peer": 277834551203491,
+      "reason": "replaced",
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.331Z",
+      "event": "peer.created",
+      "peer": 277834551203491,
+      "ready": 13,
+      "students": 12,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.346Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "replaced",
+      "ready": 12,
+      "students": 11,
+      "allocated": 15,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.356Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 12,
+      "students": 11,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.403Z",
+      "event": "peer.closed",
+      "peer": 135848180415128,
+      "reason": "replaced",
+      "ready": 11,
+      "students": 10,
+      "allocated": 15,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.420Z",
+      "event": "peer.created",
+      "peer": 135848180415128,
+      "ready": 11,
+      "students": 10,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.445Z",
+      "event": "peer.closed",
+      "peer": 201978712702459,
+      "reason": "replaced",
+      "ready": 10,
+      "students": 9,
+      "allocated": 15,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.458Z",
+      "event": "peer.created",
+      "peer": 201978712702459,
+      "ready": 10,
+      "students": 9,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.517Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 10,
+      "students": 9,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.531Z",
+      "event": "peer.closed",
+      "peer": 76935966405648,
+      "reason": "replaced",
+      "ready": 9,
+      "students": 8,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.552Z",
+      "event": "peer.created",
+      "peer": 76935966405648,
+      "ready": 9,
+      "students": 8,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.569Z",
+      "event": "peer.closed",
+      "peer": 193667143585689,
+      "reason": "replaced",
+      "ready": 8,
+      "students": 7,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.585Z",
+      "event": "peer.created",
+      "peer": 193667143585689,
+      "ready": 8,
+      "students": 7,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.610Z",
+      "event": "peer.closed",
+      "peer": 17386527181429,
+      "reason": "replaced",
+      "ready": 7,
+      "students": 6,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.627Z",
+      "event": "peer.created",
+      "peer": 17386527181429,
+      "ready": 7,
+      "students": 6,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.717Z",
+      "event": "peer.closed",
+      "peer": 110095601665883,
+      "reason": "replaced",
+      "ready": 6,
+      "students": 5,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.734Z",
+      "event": "peer.created",
+      "peer": 110095601665883,
+      "ready": 6,
+      "students": 5,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.754Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "replaced",
+      "ready": 5,
+      "students": 4,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.775Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 5,
+      "students": 4,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.794Z",
+      "event": "peer.closed",
+      "peer": 93764871939828,
+      "reason": "replaced",
+      "ready": 4,
+      "students": 3,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.805Z",
+      "event": "peer.created",
+      "peer": 93764871939828,
+      "ready": 4,
+      "students": 3,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.846Z",
+      "event": "peer.closed",
+      "peer": 233734948723098,
+      "reason": "replaced",
+      "ready": 3,
+      "students": 2,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.863Z",
+      "event": "peer.created",
+      "peer": 233734948723098,
+      "ready": 3,
+      "students": 2,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.925Z",
+      "event": "peer.closed",
+      "peer": 248492315524178,
+      "reason": "replaced",
+      "ready": 2,
+      "students": 1,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.949Z",
+      "event": "peer.created",
+      "peer": 248492315524178,
+      "ready": 2,
+      "students": 1,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.963Z",
+      "event": "peer.closed",
+      "peer": 139647521384740,
+      "reason": "replaced",
+      "ready": 1,
+      "students": 0,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.969Z",
+      "event": "peer.created",
+      "peer": 139647521384740,
+      "ready": 1,
+      "students": 0,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:44.980Z",
+      "event": "peer.closed",
+      "peer": -1,
+      "reason": "replaced",
+      "ready": 0,
+      "students": 0,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:24:44.987Z",
+      "event": "peer.created",
+      "peer": -1,
+      "ready": 0,
+      "students": 0,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:45.118Z",
+      "event": "channel.open",
+      "peer": 277834551203491,
+      "ready": 1,
+      "students": 1,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:45.127Z",
+      "event": "channel.open",
+      "peer": 14711723826160,
+      "ready": 2,
+      "students": 2,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:45.157Z",
+      "event": "channel.open",
+      "peer": 17386527181429,
+      "ready": 3,
+      "students": 3,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:45.167Z",
+      "event": "channel.open",
+      "peer": 135848180415128,
+      "ready": 4,
+      "students": 4,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:45.373Z",
+      "event": "channel.open",
+      "peer": 248492315524178,
+      "ready": 5,
+      "students": 5,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:24:45.665Z",
+      "event": "channel.open",
+      "peer": -1,
+      "ready": 6,
+      "students": 5,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:25:00.130Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "failed",
+      "ready": 6,
+      "students": 5,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:25:00.149Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "failed",
+      "ready": 6,
+      "students": 5,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:25:00.176Z",
+      "event": "peer.closed",
+      "peer": 193667143585689,
+      "reason": "failed",
+      "ready": 6,
+      "students": 5,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:25:00.283Z",
+      "event": "peer.closed",
+      "peer": 110095601665883,
+      "reason": "failed",
+      "ready": 6,
+      "students": 5,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:25:00.307Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 6,
+      "students": 5,
+      "allocated": 12,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:25:04.289Z",
+      "event": "peer.closed",
+      "peer": 17712329102132,
+      "reason": "timeout",
+      "ready": 6,
+      "students": 5,
+      "allocated": 11,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:25:04.459Z",
+      "event": "peer.closed",
+      "peer": 201978712702459,
+      "reason": "timeout",
+      "ready": 6,
+      "students": 5,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:25:04.554Z",
+      "event": "peer.closed",
+      "peer": 76935966405648,
+      "reason": "timeout",
+      "ready": 6,
+      "students": 5,
+      "allocated": 9,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:25:04.806Z",
+      "event": "peer.closed",
+      "peer": 93764871939828,
+      "reason": "timeout",
+      "ready": 6,
+      "students": 5,
+      "allocated": 8,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:25:04.865Z",
+      "event": "peer.closed",
+      "peer": 233734948723098,
+      "reason": "timeout",
+      "ready": 6,
+      "students": 5,
+      "allocated": 7,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:25:04.975Z",
+      "event": "peer.closed",
+      "peer": 139647521384740,
+      "reason": "timeout",
+      "ready": 6,
+      "students": 5,
+      "allocated": 6,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:27:53.535Z",
+      "event": "peer.created",
+      "peer": 193667143585689,
+      "ready": 6,
+      "students": 5,
+      "allocated": 7,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:27:54.078Z",
+      "event": "channel.open",
+      "peer": 193667143585689,
+      "ready": 7,
+      "students": 6,
+      "allocated": 7,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:28:01.284Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 7,
+      "students": 6,
+      "allocated": 8,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:28:01.863Z",
+      "event": "channel.open",
+      "peer": 215659234796756,
+      "ready": 8,
+      "students": 7,
+      "allocated": 8,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:29:15.270Z",
+      "event": "peer.created",
+      "peer": 11437444992914,
+      "ready": 8,
+      "students": 7,
+      "allocated": 9,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:29:15.753Z",
+      "event": "channel.open",
+      "peer": 11437444992914,
+      "ready": 9,
+      "students": 8,
+      "allocated": 9,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:30:03.389Z",
+      "event": "peer.created",
+      "peer": 233734948723098,
+      "ready": 9,
+      "students": 8,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:30:03.868Z",
+      "event": "channel.open",
+      "peer": 233734948723098,
+      "ready": 10,
+      "students": 9,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:31:40.253Z",
+      "event": "peer.closed",
+      "peer": 193667143585689,
+      "reason": "channel-error",
+      "ready": 9,
+      "students": 8,
+      "allocated": 9,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:31:41.071Z",
+      "event": "peer.created",
+      "peer": 193667143585689,
+      "ready": 9,
+      "students": 8,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:31:41.412Z",
+      "event": "channel.open",
+      "peer": 193667143585689,
+      "ready": 10,
+      "students": 9,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:31:42.626Z",
+      "event": "peer.closed",
+      "peer": 11437444992914,
+      "reason": "disconnected",
+      "ready": 9,
+      "students": 8,
+      "allocated": 9,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:31:48.795Z",
+      "event": "peer.created",
+      "peer": 93764871939828,
+      "ready": 9,
+      "students": 8,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:31:49.265Z",
+      "event": "channel.open",
+      "peer": 93764871939828,
+      "ready": 10,
+      "students": 9,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:31:54.373Z",
+      "event": "peer.closed",
+      "peer": 93764871939828,
+      "reason": "channel-error",
+      "ready": 9,
+      "students": 8,
+      "allocated": 9,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:31:55.272Z",
+      "event": "peer.created",
+      "peer": 93764871939828,
+      "ready": 9,
+      "students": 8,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:31:55.734Z",
+      "event": "channel.open",
+      "peer": 93764871939828,
+      "ready": 10,
+      "students": 9,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:07.654Z",
+      "event": "peer.closed",
+      "peer": 277834551203491,
+      "reason": "disconnected",
+      "ready": 9,
+      "students": 8,
+      "allocated": 9,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:32:09.266Z",
+      "event": "peer.created",
+      "peer": 18912474536368,
+      "ready": 9,
+      "students": 8,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:09.739Z",
+      "event": "channel.open",
+      "peer": 18912474536368,
+      "ready": 10,
+      "students": 9,
+      "allocated": 10,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:12.250Z",
+      "event": "peer.created",
+      "peer": 76935966405648,
+      "ready": 10,
+      "students": 9,
+      "allocated": 11,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:12.501Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 10,
+      "students": 9,
+      "allocated": 12,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:16.760Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 10,
+      "students": 9,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:18.036Z",
+      "event": "peer.closed",
+      "peer": 76935966405648,
+      "reason": "replaced",
+      "ready": 10,
+      "students": 9,
+      "allocated": 12,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:18.074Z",
+      "event": "peer.created",
+      "peer": 76935966405648,
+      "ready": 10,
+      "students": 9,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:24.432Z",
+      "event": "peer.created",
+      "peer": 17712329102132,
+      "ready": 10,
+      "students": 9,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:24.880Z",
+      "event": "channel.open",
+      "peer": 17712329102132,
+      "ready": 11,
+      "students": 10,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:26.325Z",
+      "event": "peer.created",
+      "peer": 139113302847790,
+      "ready": 11,
+      "students": 10,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:27.058Z",
+      "event": "channel.open",
+      "peer": 139113302847790,
+      "ready": 12,
+      "students": 11,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:28.071Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "failed",
+      "ready": 12,
+      "students": 11,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:32.100Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 12,
+      "students": 11,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:32.281Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 12,
+      "students": 11,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:33.618Z",
+      "event": "peer.closed",
+      "peer": 76935966405648,
+      "reason": "failed",
+      "ready": 12,
+      "students": 11,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:38.815Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 12,
+      "students": 11,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:39.856Z",
+      "event": "peer.created",
+      "peer": 76935966405648,
+      "ready": 12,
+      "students": 11,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:42.633Z",
+      "event": "peer.created",
+      "peer": 201978712702459,
+      "ready": 12,
+      "students": 11,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:45.385Z",
+      "event": "peer.closed",
+      "peer": 201978712702459,
+      "reason": "replaced",
+      "ready": 12,
+      "students": 11,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:45.412Z",
+      "event": "peer.created",
+      "peer": 201978712702459,
+      "ready": 12,
+      "students": 11,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:47.523Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "failed",
+      "ready": 12,
+      "students": 11,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:49.747Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 12,
+      "students": 11,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:50.264Z",
+      "event": "channel.open",
+      "peer": 44005978265573,
+      "ready": 13,
+      "students": 12,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:52.953Z",
+      "event": "peer.closed",
+      "peer": 201978712702459,
+      "reason": "replaced",
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:52.995Z",
+      "event": "peer.created",
+      "peer": 201978712702459,
+      "ready": 13,
+      "students": 12,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:54.313Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:55.328Z",
+      "event": "peer.closed",
+      "peer": 76935966405648,
+      "reason": "failed",
+      "ready": 13,
+      "students": 12,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:57.621Z",
+      "event": "peer.closed",
+      "peer": 201978712702459,
+      "reason": "replaced",
+      "ready": 13,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:57.656Z",
+      "event": "peer.created",
+      "peer": 201978712702459,
+      "ready": 13,
+      "students": 12,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:58.883Z",
+      "event": "peer.closed",
+      "peer": 135848180415128,
+      "reason": "replaced",
+      "ready": 12,
+      "students": 11,
+      "allocated": 13,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:32:58.912Z",
+      "event": "peer.created",
+      "peer": 135848180415128,
+      "ready": 12,
+      "students": 11,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:32:59.387Z",
+      "event": "channel.open",
+      "peer": 135848180415128,
+      "ready": 13,
+      "students": 12,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:06.085Z",
+      "event": "peer.closed",
+      "peer": 93764871939828,
+      "reason": "channel-error",
+      "ready": 12,
+      "students": 11,
+      "allocated": 13,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:33:06.988Z",
+      "event": "peer.created",
+      "peer": 93764871939828,
+      "ready": 12,
+      "students": 11,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:07.383Z",
+      "event": "channel.open",
+      "peer": 93764871939828,
+      "ready": 13,
+      "students": 12,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:07.868Z",
+      "event": "peer.created",
+      "peer": 76935966405648,
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:10.791Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 13,
+      "students": 12,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:13.150Z",
+      "event": "peer.closed",
+      "peer": 201978712702459,
+      "reason": "failed",
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:19.466Z",
+      "event": "peer.created",
+      "peer": 201978712702459,
+      "ready": 13,
+      "students": 12,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:22.621Z",
+      "event": "peer.closed",
+      "peer": 201978712702459,
+      "reason": "replaced",
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:22.655Z",
+      "event": "peer.created",
+      "peer": 201978712702459,
+      "ready": 13,
+      "students": 12,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:23.271Z",
+      "event": "peer.closed",
+      "peer": 76935966405648,
+      "reason": "failed",
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:25.312Z",
+      "event": "peer.created",
+      "peer": 110095601665883,
+      "ready": 13,
+      "students": 12,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:26.330Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:26.995Z",
+      "event": "peer.created",
+      "peer": 173534571107226,
+      "ready": 13,
+      "students": 12,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:27.546Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "channel-error",
+      "ready": 12,
+      "students": 11,
+      "allocated": 15,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:33:28.493Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 12,
+      "students": 11,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:29.013Z",
+      "event": "channel.open",
+      "peer": 215659234796756,
+      "ready": 13,
+      "students": 12,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:38.112Z",
+      "event": "peer.closed",
+      "peer": 201978712702459,
+      "reason": "failed",
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:38.896Z",
+      "event": "peer.closed",
+      "peer": -1,
+      "reason": "channel-error",
+      "ready": 12,
+      "students": 12,
+      "allocated": 14,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:33:39.636Z",
+      "event": "peer.closed",
+      "peer": 110095601665883,
+      "reason": "replaced",
+      "ready": 12,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:39.663Z",
+      "event": "peer.created",
+      "peer": 110095601665883,
+      "ready": 12,
+      "students": 12,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:40.359Z",
+      "event": "peer.created",
+      "peer": -1,
+      "ready": 12,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:41.017Z",
+      "event": "channel.open",
+      "peer": -1,
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:42.977Z",
+      "event": "peer.closed",
+      "peer": 173534571107226,
+      "reason": "failed",
+      "ready": 13,
+      "students": 12,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:51.265Z",
+      "event": "peer.created",
+      "peer": 73185975293769,
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:52.248Z",
+      "event": "channel.open",
+      "peer": 73185975293769,
+      "ready": 14,
+      "students": 13,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:55.238Z",
+      "event": "peer.closed",
+      "peer": 110095601665883,
+      "reason": "failed",
+      "ready": 14,
+      "students": 13,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:33:59.523Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 14,
+      "students": 13,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:00.161Z",
+      "event": "channel.open",
+      "peer": 180793309991349,
+      "ready": 15,
+      "students": 14,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:00.634Z",
+      "event": "peer.created",
+      "peer": 201978712702459,
+      "ready": 15,
+      "students": 14,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:05.600Z",
+      "event": "peer.created",
+      "peer": 110095601665883,
+      "ready": 15,
+      "students": 14,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:06.344Z",
+      "event": "peer.created",
+      "peer": 173534571107226,
+      "ready": 15,
+      "students": 14,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:06.680Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "replaced",
+      "ready": 14,
+      "students": 13,
+      "allocated": 17,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:34:06.711Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 14,
+      "students": 13,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:07.332Z",
+      "event": "channel.open",
+      "peer": 215659234796756,
+      "ready": 15,
+      "students": 14,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:16.186Z",
+      "event": "peer.closed",
+      "peer": 201978712702459,
+      "reason": "failed",
+      "ready": 15,
+      "students": 14,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:21.091Z",
+      "event": "peer.closed",
+      "peer": 110095601665883,
+      "reason": "failed",
+      "ready": 15,
+      "students": 14,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:21.914Z",
+      "event": "peer.closed",
+      "peer": 173534571107226,
+      "reason": "failed",
+      "ready": 15,
+      "students": 14,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:25.374Z",
+      "event": "peer.created",
+      "peer": 201978712702459,
+      "ready": 15,
+      "students": 14,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:25.941Z",
+      "event": "peer.created",
+      "peer": 173534571107226,
+      "ready": 15,
+      "students": 14,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:28.725Z",
+      "event": "peer.created",
+      "peer": 76935966405648,
+      "ready": 15,
+      "students": 14,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:31.512Z",
+      "event": "peer.created",
+      "peer": 110095601665883,
+      "ready": 15,
+      "students": 14,
+      "allocated": 19,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:40.888Z",
+      "event": "peer.closed",
+      "peer": 201978712702459,
+      "reason": "failed",
+      "ready": 15,
+      "students": 14,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:41.170Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "replaced",
+      "ready": 14,
+      "students": 13,
+      "allocated": 17,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:34:41.188Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 14,
+      "students": 13,
+      "allocated": 18,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:41.661Z",
+      "event": "peer.closed",
+      "peer": 173534571107226,
+      "reason": "failed",
+      "ready": 14,
+      "students": 13,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:44.132Z",
+      "event": "peer.closed",
+      "peer": 76935966405648,
+      "reason": "failed",
+      "ready": 14,
+      "students": 13,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:47.007Z",
+      "event": "peer.closed",
+      "peer": 110095601665883,
+      "reason": "failed",
+      "ready": 14,
+      "students": 13,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:54.930Z",
+      "event": "peer.closed",
+      "peer": 93764871939828,
+      "reason": "channel-error",
+      "ready": 13,
+      "students": 12,
+      "allocated": 14,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:34:55.673Z",
+      "event": "peer.created",
+      "peer": 93764871939828,
+      "ready": 13,
+      "students": 12,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:56.057Z",
+      "event": "channel.open",
+      "peer": 93764871939828,
+      "ready": 14,
+      "students": 13,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:34:56.616Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 14,
+      "students": 13,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:35:06.830Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 14,
+      "students": 13,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:35:22.309Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 14,
+      "students": 13,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:35:44.615Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "disconnected",
+      "ready": 13,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:35:55.091Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 13,
+      "students": 12,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:36:10.496Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 13,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:36:15.811Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 13,
+      "students": 12,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:36:31.415Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 13,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:36:36.911Z",
+      "event": "peer.closed",
+      "peer": -1,
+      "reason": "replaced",
+      "ready": 12,
+      "students": 12,
+      "allocated": 12,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:36:36.956Z",
+      "event": "peer.created",
+      "peer": -1,
+      "ready": 12,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:36:45.318Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 12,
+      "students": 12,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:36:52.540Z",
+      "event": "peer.closed",
+      "peer": -1,
+      "reason": "failed",
+      "ready": 12,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:37:01.835Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 12,
+      "students": 12,
+      "allocated": 12,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:37:02.262Z",
+      "event": "peer.closed",
+      "peer": 18912474536368,
+      "reason": "channel-error",
+      "ready": 11,
+      "students": 11,
+      "allocated": 11,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:37:03.287Z",
+      "event": "peer.created",
+      "peer": 18912474536368,
+      "ready": 11,
+      "students": 11,
+      "allocated": 12,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:37:03.899Z",
+      "event": "channel.open",
+      "peer": 18912474536368,
+      "ready": 12,
+      "students": 12,
+      "allocated": 12,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:38:18.243Z",
+      "event": "peer.created",
+      "peer": 110095601665883,
+      "ready": 12,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:38:24.502Z",
+      "event": "peer.closed",
+      "peer": 93764871939828,
+      "reason": "channel-error",
+      "ready": 11,
+      "students": 11,
+      "allocated": 12,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:38:25.402Z",
+      "event": "peer.created",
+      "peer": 93764871939828,
+      "ready": 11,
+      "students": 11,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:38:25.838Z",
+      "event": "channel.open",
+      "peer": 93764871939828,
+      "ready": 12,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:38:33.795Z",
+      "event": "peer.closed",
+      "peer": 110095601665883,
+      "reason": "failed",
+      "ready": 12,
+      "students": 12,
+      "allocated": 12,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:38:52.566Z",
+      "event": "peer.created",
+      "peer": 42761472018594,
+      "ready": 12,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:38:53.262Z",
+      "event": "channel.open",
+      "peer": 42761472018594,
+      "ready": 13,
+      "students": 13,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:39:12.997Z",
+      "event": "peer.closed",
+      "peer": 18912474536368,
+      "reason": "disconnected",
+      "ready": 12,
+      "students": 12,
+      "allocated": 12,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:39:48.458Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 12,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:39:50.207Z",
+      "event": "channel.open",
+      "peer": 215659234796756,
+      "ready": 13,
+      "students": 13,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:39:53.808Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 13,
+      "students": 13,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:39:57.522Z",
+      "event": "peer.created",
+      "peer": 18912474536368,
+      "ready": 13,
+      "students": 13,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:39:57.972Z",
+      "event": "channel.open",
+      "peer": 18912474536368,
+      "ready": 14,
+      "students": 14,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:40:09.383Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 14,
+      "students": 14,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:40:19.839Z",
+      "event": "peer.created",
+      "peer": 139647521384740,
+      "ready": 14,
+      "students": 14,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:40:20.315Z",
+      "event": "channel.open",
+      "peer": 139647521384740,
+      "ready": 15,
+      "students": 15,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:40:22.607Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 15,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:40:25.521Z",
+      "event": "peer.created",
+      "peer": 167673247573263,
+      "ready": 15,
+      "students": 15,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:40:25.983Z",
+      "event": "channel.open",
+      "peer": 167673247573263,
+      "ready": 16,
+      "students": 16,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:40:31.659Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "disconnected",
+      "ready": 15,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:40:38.070Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 15,
+      "students": 15,
+      "allocated": 15,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:40:41.099Z",
+      "event": "peer.created",
+      "peer": 215659234796756,
+      "ready": 15,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:40:41.873Z",
+      "event": "channel.open",
+      "peer": 215659234796756,
+      "ready": 16,
+      "students": 16,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:40:48.410Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 16,
+      "students": 16,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:41:04.320Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 16,
+      "students": 16,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:41:06.532Z",
+      "event": "peer.closed",
+      "peer": 73185975293769,
+      "reason": "channel-error",
+      "ready": 15,
+      "students": 15,
+      "allocated": 15,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:41:07.482Z",
+      "event": "peer.created",
+      "peer": 73185975293769,
+      "ready": 15,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:41:07.932Z",
+      "event": "channel.open",
+      "peer": 73185975293769,
+      "ready": 16,
+      "students": 16,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:41:10.334Z",
+      "event": "peer.created",
+      "peer": 180793309991349,
+      "ready": 16,
+      "students": 16,
+      "allocated": 17,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:41:25.821Z",
+      "event": "peer.closed",
+      "peer": 180793309991349,
+      "reason": "failed",
+      "ready": 16,
+      "students": 16,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:41:38.420Z",
+      "event": "peer.closed",
+      "peer": 139113302847790,
+      "reason": "channel-error",
+      "ready": 15,
+      "students": 15,
+      "allocated": 15,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:41:39.284Z",
+      "event": "peer.created",
+      "peer": 139113302847790,
+      "ready": 15,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:41:39.979Z",
+      "event": "channel.open",
+      "peer": 139113302847790,
+      "ready": 16,
+      "students": 16,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:41:41.606Z",
+      "event": "peer.closed",
+      "peer": 93764871939828,
+      "reason": "channel-error",
+      "ready": 15,
+      "students": 15,
+      "allocated": 15,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:41:42.347Z",
+      "event": "peer.created",
+      "peer": 93764871939828,
+      "ready": 15,
+      "students": 15,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:41:42.733Z",
+      "event": "channel.open",
+      "peer": 93764871939828,
+      "ready": 16,
+      "students": 16,
+      "allocated": 16,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:42:20.336Z",
+      "event": "peer.closed",
+      "peer": 18912474536368,
+      "reason": "disconnected",
+      "ready": 15,
+      "students": 15,
+      "allocated": 15,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:42:24.383Z",
+      "event": "peer.closed",
+      "peer": 233734948723098,
+      "reason": "disconnected",
+      "ready": 14,
+      "students": 14,
+      "allocated": 14,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:43:19.180Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "replaced",
+      "ready": 13,
+      "students": 13,
+      "allocated": 13,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:43:19.226Z",
+      "event": "peer.created",
+      "peer": 44005978265573,
+      "ready": 13,
+      "students": 13,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:43:19.930Z",
+      "event": "channel.open",
+      "peer": 44005978265573,
+      "ready": 14,
+      "students": 14,
+      "allocated": 14,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:43:41.307Z",
+      "event": "peer.closed",
+      "peer": 93764871939828,
+      "reason": "disconnected",
+      "ready": 13,
+      "students": 13,
+      "allocated": 13,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:43:57.044Z",
+      "event": "peer.closed",
+      "peer": 139113302847790,
+      "reason": "disconnected",
+      "ready": 12,
+      "students": 12,
+      "allocated": 12,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:44:46.987Z",
+      "event": "peer.created",
+      "peer": 139113302847790,
+      "ready": 12,
+      "students": 12,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:44:47.335Z",
+      "event": "channel.open",
+      "peer": 139113302847790,
+      "ready": 13,
+      "students": 13,
+      "allocated": 13,
+      "previousReady": false
+    },
+    {
+      "time": "2026-09-11T02:44:55.723Z",
+      "event": "peer.closed",
+      "peer": 17712329102132,
+      "reason": "disconnected",
+      "ready": 12,
+      "students": 12,
+      "allocated": 12,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:44:56.755Z",
+      "event": "peer.closed",
+      "peer": 42761472018594,
+      "reason": "disconnected",
+      "ready": 11,
+      "students": 11,
+      "allocated": 11,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:45:03.692Z",
+      "event": "peer.closed",
+      "peer": 248492315524178,
+      "reason": "disconnected",
+      "ready": 10,
+      "students": 10,
+      "allocated": 10,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:45:15.707Z",
+      "event": "peer.closed",
+      "peer": 44005978265573,
+      "reason": "disconnected",
+      "ready": 9,
+      "students": 9,
+      "allocated": 9,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:45:43.633Z",
+      "event": "peer.closed",
+      "peer": 215659234796756,
+      "reason": "disconnected",
+      "ready": 8,
+      "students": 8,
+      "allocated": 8,
+      "previousReady": true
+    },
+    {
+      "time": "2026-09-11T02:46:45.827Z",
+      "event": "peer.closed",
+      "peer": 139113302847790,
+      "reason": "disconnected",
+      "ready": 7,
+      "students": 7,
+      "allocated": 7,
+      "previousReady": true
+    }
+  ],
+  "correlation": [
+    {
+      "time": "2026-09-11T02:34:54.930Z",
+      "peer": 93764871939828,
+      "reason": "channel-error",
+      "remaining": 13,
+      "precedingDifferentOpen": "2026-09-11T02:34:07.332Z",
+      "secondsSinceOpen": 48
+    },
+    {
+      "time": "2026-09-11T02:35:44.615Z",
+      "peer": 215659234796756,
+      "reason": "disconnected",
+      "remaining": 13,
+      "precedingDifferentOpen": "2026-09-11T02:34:56.057Z",
+      "secondsSinceOpen": 49
+    },
+    {
+      "time": "2026-09-11T02:37:02.262Z",
+      "peer": 18912474536368,
+      "reason": "channel-error",
+      "remaining": 11,
+      "precedingDifferentOpen": "2026-09-11T02:34:56.057Z",
+      "secondsSinceOpen": 126
+    },
+    {
+      "time": "2026-09-11T02:38:24.502Z",
+      "peer": 93764871939828,
+      "reason": "channel-error",
+      "remaining": 11,
+      "precedingDifferentOpen": "2026-09-11T02:37:03.899Z",
+      "secondsSinceOpen": 81
+    },
+    {
+      "time": "2026-09-11T02:39:12.997Z",
+      "peer": 18912474536368,
+      "reason": "disconnected",
+      "remaining": 12,
+      "precedingDifferentOpen": "2026-09-11T02:38:53.262Z",
+      "secondsSinceOpen": 20
+    },
+    {
+      "time": "2026-09-11T02:40:31.659Z",
+      "peer": 215659234796756,
+      "reason": "disconnected",
+      "remaining": 15,
+      "precedingDifferentOpen": "2026-09-11T02:40:25.983Z",
+      "secondsSinceOpen": 6
+    },
+    {
+      "time": "2026-09-11T02:41:06.532Z",
+      "peer": 73185975293769,
+      "reason": "channel-error",
+      "remaining": 15,
+      "precedingDifferentOpen": "2026-09-11T02:40:41.873Z",
+      "secondsSinceOpen": 25
+    },
+    {
+      "time": "2026-09-11T02:41:38.420Z",
+      "peer": 139113302847790,
+      "reason": "channel-error",
+      "remaining": 15,
+      "precedingDifferentOpen": "2026-09-11T02:41:07.932Z",
+      "secondsSinceOpen": 30
+    },
+    {
+      "time": "2026-09-11T02:41:41.606Z",
+      "peer": 93764871939828,
+      "reason": "channel-error",
+      "remaining": 15,
+      "precedingDifferentOpen": "2026-09-11T02:41:39.979Z",
+      "secondsSinceOpen": 2
+    },
+    {
+      "time": "2026-09-11T02:42:20.336Z",
+      "peer": 18912474536368,
+      "reason": "disconnected",
+      "remaining": 15,
+      "precedingDifferentOpen": "2026-09-11T02:41:42.733Z",
+      "secondsSinceOpen": 38
+    },
+    {
+      "time": "2026-09-11T02:42:24.383Z",
+      "peer": 233734948723098,
+      "reason": "disconnected",
+      "remaining": 14,
+      "precedingDifferentOpen": "2026-09-11T02:41:42.733Z",
+      "secondsSinceOpen": 42
+    },
+    {
+      "time": "2026-09-11T02:43:41.307Z",
+      "peer": 93764871939828,
+      "reason": "disconnected",
+      "remaining": 13,
+      "precedingDifferentOpen": "2026-09-11T02:43:19.930Z",
+      "secondsSinceOpen": 21
+    },
+    {
+      "time": "2026-09-11T02:43:57.044Z",
+      "peer": 139113302847790,
+      "reason": "disconnected",
+      "remaining": 12,
+      "precedingDifferentOpen": "2026-09-11T02:43:19.930Z",
+      "secondsSinceOpen": 37
+    },
+    {
+      "time": "2026-09-11T02:44:55.723Z",
+      "peer": 17712329102132,
+      "reason": "disconnected",
+      "remaining": 12,
+      "precedingDifferentOpen": "2026-09-11T02:44:47.335Z",
+      "secondsSinceOpen": 8
+    },
+    {
+      "time": "2026-09-11T02:44:56.755Z",
+      "peer": 42761472018594,
+      "reason": "disconnected",
+      "remaining": 11,
+      "precedingDifferentOpen": "2026-09-11T02:44:47.335Z",
+      "secondsSinceOpen": 9
+    },
+    {
+      "time": "2026-09-11T02:45:03.692Z",
+      "peer": 248492315524178,
+      "reason": "disconnected",
+      "remaining": 10,
+      "precedingDifferentOpen": "2026-09-11T02:44:47.335Z",
+      "secondsSinceOpen": 16
+    },
+    {
+      "time": "2026-09-11T02:45:15.707Z",
+      "peer": 44005978265573,
+      "reason": "disconnected",
+      "remaining": 9,
+      "precedingDifferentOpen": "2026-09-11T02:44:47.335Z",
+      "secondsSinceOpen": 28
+    },
+    {
+      "time": "2026-09-11T02:45:43.633Z",
+      "peer": 215659234796756,
+      "reason": "disconnected",
+      "remaining": 8,
+      "precedingDifferentOpen": "2026-09-11T02:44:47.335Z",
+      "secondsSinceOpen": 56
+    },
+    {
+      "time": "2026-09-11T02:46:45.827Z",
+      "peer": 139113302847790,
+      "reason": "disconnected",
+      "remaining": 7,
+      "precedingDifferentOpen": "2026-09-11T02:43:19.930Z",
+      "secondsSinceOpen": 206
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+Edit this Korean manual page while preserving all existing screenshot content, code numbers, arrows, title, colors, and overall composition. Make only two small instructional corrections.
+1. In the RIGHT screenshot panel, the upper label currently reads "교사 PC · dotoschool.uk". Replace that label with two clearly readable lines, or a title and an adjacent small cue: "교사 PC · dotoschool.uk" and "시작 화면에서 ‘방 입장하기’ 선택". This is an editorial instruction outside the real screenshot. The user must know to choose 방 입장하기 on the website's starting screen before reaching the shown code-entry form. Fit this cue without obscuring the screenshot or changing the three numbered arrows.
+2. In the bottom reminder strip next to "수업을 연 학생용 태블릿은 계속 켜 두세요.", change only the laptop icon to an upright tablet outline icon matching page 1's tablet. The reminder refers to the student tablet, not the PC.
+Keep everything else exactly as is.

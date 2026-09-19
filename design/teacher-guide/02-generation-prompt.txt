@@ -1,0 +1,20 @@
+Create page 2 of the Korean screenshot-and-arrow teacher guide for Doto. Input images 1-3 are genuine screenshots captured on the live dotoschool.uk website; they must supply the actual screenshot panels. Input image 4 is the finished page 1: match its landscape 3:2 format, cream background, green numbered arrows, typography, title scale, rounded screenshot panels, and bottom reminder strip. Preserve the real screenshot content and exact Korean UI controls; crop and enlarge relevant screenshot regions, do not fabricate replacement UI.
+
+The instructional story: a classroom is already open on ONE OF THE STUDENT TABLETS. Read the eight-digit TEACHER code on that student tablet, then open dotoschool.uk on the TEACHER PC and enter that teacher code. This joins the PC to the existing classroom. The student tablet continues to host and must stay on.
+
+Render this editorial text verbatim:
+Header: "도토 · 교사 안내 02"
+Title: "교사 PC 연결하기"
+Preparation strip: "학생용 태블릿에서 연 수업에 PC를 연결해요."
+Left screenshot-panel label: "수업을 연 학생용 태블릿"
+Right screenshot-panel label: "교사 PC · dotoschool.uk"
+Arrow 1 to the teacher-code card in screenshot 1: "① 교사용 입장코드 확인"
+Compact badge near the same card: "교사용은 8자리"
+Arrow 2 to the real code field in screenshot 2: "② 같은 코드 입력"
+Arrow 3 to the real join button in screenshot 2: "③ 방 입장하기"
+Small finished-state inset from screenshot 3: "교사 화면이 열리면 연결 완료"
+Bottom reminder: "수업을 연 학생용 태블릿은 계속 켜 두세요."
+Small footer: "화면의 코드는 촬영용 예시입니다."
+Next-page cue: "다음 03 · 글쓰기 주제 준비하기"
+
+Use the real teacher code exactly as visible in screenshots 1 and 2; do not substitute the six-digit student code. Show the teacher-code card and the code-entry form large enough to follow, with a small completed-state inset below. Keep the screenshots as the main visual content, annotations short, and arrows off important text. Avoid showing irrelevant battery information or duplicating unrelated page content. Do not suggest opening a second classroom on the PC.

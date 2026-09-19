@@ -1,0 +1,173 @@
+{
+  "generatedAt": "2026-09-18T03:02:26.451Z",
+  "results": [
+    {
+      "scenario": {
+        "characters": 1000,
+        "posts": 0,
+        "rate": 1
+      },
+      "summary": {
+        "project": {
+          "count": 30,
+          "totalMs": 38.8,
+          "medianMs": 1.2,
+          "p95Ms": 2.1,
+          "maxMs": 2.1
+        },
+        "emit": {
+          "count": 61,
+          "totalMs": 2.3,
+          "medianMs": 0,
+          "p95Ms": 0.1,
+          "maxMs": 0.2
+        },
+        "getHTML": {
+          "count": 30,
+          "totalMs": 5.8,
+          "medianMs": 0.2,
+          "p95Ms": 0.4,
+          "maxMs": 0.4
+        },
+        "getText": {
+          "count": 91,
+          "totalMs": 3.5,
+          "medianMs": 0,
+          "p95Ms": 0.1,
+          "maxMs": 0.2
+        },
+        "insertSync": {
+          "count": 30,
+          "totalMs": 105.3,
+          "medianMs": 3.5,
+          "p95Ms": 5.2,
+          "maxMs": 8
+        },
+        "flush": {
+          "count": 31,
+          "totalMs": 19.4,
+          "medianMs": 0.5,
+          "p95Ms": 1.1,
+          "maxMs": 1.9
+        }
+      },
+      "harnessRenders": 61,
+      "documentCount": 1,
+      "posts": 0,
+      "savedRecordJsonCharacters": 2754,
+      "notes": "Synthetic app-source harness; not a tablet measurement. insertSync includes project/getHTML; phase timings overlap. flush measures synchronous preparation only, excluding IndexedDB completion."
+    },
+    {
+      "scenario": {
+        "characters": 3000,
+        "posts": 25,
+        "rate": 1
+      },
+      "summary": {
+        "project": {
+          "count": 30,
+          "totalMs": 66.7,
+          "medianMs": 2.2,
+          "p95Ms": 3.1,
+          "maxMs": 3.4
+        },
+        "emit": {
+          "count": 61,
+          "totalMs": 2.2,
+          "medianMs": 0,
+          "p95Ms": 0.1,
+          "maxMs": 0.2
+        },
+        "getHTML": {
+          "count": 30,
+          "totalMs": 11.9,
+          "medianMs": 0.4,
+          "p95Ms": 0.6,
+          "maxMs": 0.6
+        },
+        "getText": {
+          "count": 91,
+          "totalMs": 4.4,
+          "medianMs": 0,
+          "p95Ms": 0.1,
+          "maxMs": 0.2
+        },
+        "insertSync": {
+          "count": 30,
+          "totalMs": 151.3,
+          "medianMs": 5.2,
+          "p95Ms": 7.6,
+          "maxMs": 9.5
+        },
+        "flush": {
+          "count": 31,
+          "totalMs": 37.5,
+          "medianMs": 1.2,
+          "p95Ms": 2,
+          "maxMs": 2.3
+        }
+      },
+      "harnessRenders": 61,
+      "documentCount": 1,
+      "posts": 25,
+      "savedRecordJsonCharacters": 169903,
+      "notes": "Synthetic app-source harness; not a tablet measurement. insertSync includes project/getHTML; phase timings overlap. flush measures synchronous preparation only, excluding IndexedDB completion."
+    },
+    {
+      "scenario": {
+        "characters": 3000,
+        "posts": 25,
+        "rate": 4
+      },
+      "summary": {
+        "project": {
+          "count": 30,
+          "totalMs": 254.6,
+          "medianMs": 8.3,
+          "p95Ms": 15.5,
+          "maxMs": 15.7
+        },
+        "emit": {
+          "count": 33,
+          "totalMs": 4.6,
+          "medianMs": 0.1,
+          "p95Ms": 0.4,
+          "maxMs": 0.7
+        },
+        "getHTML": {
+          "count": 30,
+          "totalMs": 53.9,
+          "medianMs": 1.6,
+          "p95Ms": 3.6,
+          "maxMs": 6
+        },
+        "getText": {
+          "count": 63,
+          "totalMs": 12.3,
+          "medianMs": 0.2,
+          "p95Ms": 0.4,
+          "maxMs": 0.5
+        },
+        "insertSync": {
+          "count": 30,
+          "totalMs": 567.3,
+          "medianMs": 17.7,
+          "p95Ms": 25.6,
+          "maxMs": 49.1
+        },
+        "flush": {
+          "count": 31,
+          "totalMs": 146.5,
+          "medianMs": 4,
+          "p95Ms": 11,
+          "maxMs": 12.6
+        }
+      },
+      "harnessRenders": 33,
+      "documentCount": 1,
+      "posts": 25,
+      "savedRecordJsonCharacters": 169903,
+      "notes": "Synthetic app-source harness; not a tablet measurement. insertSync includes project/getHTML; phase timings overlap. flush measures synchronous preparation only, excluding IndexedDB completion."
+    }
+  ]
+}
